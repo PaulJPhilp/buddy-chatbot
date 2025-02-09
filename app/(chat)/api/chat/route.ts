@@ -67,7 +67,7 @@ export async function POST(request: Request) {
         messages,
         maxSteps: 5,
         experimental_activeTools:
-          selectedChatModel === 'chat-model-reasoning'
+          selectedChatModel.indexOf('reasoning') > -1
             ? []
             : [
                 'getWeather',
@@ -87,6 +87,7 @@ export async function POST(request: Request) {
           }),
         },
         onFinish: async ({ response, reasoning }) => {
+          console.log(`Finished`)
           if (session.user?.id) {
             try {
               const sanitizedResponseMessages = sanitizeResponseMessages({
@@ -120,7 +121,8 @@ export async function POST(request: Request) {
         sendReasoning: true,
       });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Failed to stream text', error);
       return 'Oops, an error occured!';
     },
   });

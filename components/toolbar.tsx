@@ -8,15 +8,16 @@ import {
   useMotionValue,
   useTransform,
 } from 'framer-motion';
-import {
-  type Dispatch,
-  memo,
+
+
+import type {
+  Dispatch,
   ReactNode,
-  type SetStateAction,
-  useEffect,
-  useRef,
-  useState,
+  SetStateAction,
 } from 'react';
+
+import { memo, useEffect, useRef, useState } from 'react';
+
 import { useOnClickOutside } from 'usehooks-ts';
 import { nanoid } from 'nanoid';
 import {
@@ -29,17 +30,17 @@ import { sanitizeUIMessages } from '@/lib/utils';
 
 import {
   ArrowUpIcon,
-  CodeIcon,
-  LogsIcon,
-  MessageIcon,
-  PenIcon,
-  SparklesIcon,
+  //CodeIcon,
+  //LogsIcon,
+  //MessageIcon,
+  //PenIcon,
+  //SparklesIcon,
   StopIcon,
   SummarizeIcon,
 } from './icons';
-import { blockDefinitions, BlockKind } from './block';
-import { BlockToolbarItem } from './create-block';
-import { UseChatHelpers } from 'ai/react';
+import { blockDefinitions, type BlockKind } from './block';
+import type { BlockToolbarItem } from './create-block';
+import type { UseChatHelpers } from 'ai/react';
 
 type ToolProps = {
   description: string;
@@ -400,19 +401,19 @@ const PureToolbar = ({
           isToolbarVisible
             ? selectedTool === 'adjust-reading-level'
               ? {
-                  opacity: 1,
-                  y: 0,
-                  height: 6 * 43,
-                  transition: { delay: 0 },
-                  scale: 0.95,
-                }
+                opacity: 1,
+                y: 0,
+                height: 6 * 43,
+                transition: { delay: 0 },
+                scale: 0.95,
+              }
               : {
-                  opacity: 1,
-                  y: 0,
-                  height: toolsByBlockKind.length * 50,
-                  transition: { delay: 0 },
-                  scale: 1,
-                }
+                opacity: 1,
+                y: 0,
+                height: toolsByBlockKind.length * 50,
+                transition: { delay: 0 },
+                scale: 1,
+              }
             : { opacity: 1, y: 0, height: 54, transition: { delay: 0 } }
         }
         exit={{ opacity: 0, y: -20, transition: { duration: 0.1 } }}

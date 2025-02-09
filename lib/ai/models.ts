@@ -1,7 +1,7 @@
-import { openai } from '@ai-sdk/openai';
 import { anthropic } from "@ai-sdk/anthropic";
-import { google } from '@ai-sdk/google';
 import { fireworks } from '@ai-sdk/fireworks';
+import { google } from '@ai-sdk/google';
+import { openai } from '@ai-sdk/openai';
 import {
   customProvider,
   extractReasoningMiddleware,
@@ -14,8 +14,8 @@ export const myProvider = customProvider({
   languageModels: {
     'openai-small': openai('gpt-4o-mini'),
     'openai-large': openai('gpt-4o'),
-    'openai-reasoning': openai('o3-mini'),
-    'openseek-R1': wrapLanguageModel({
+    'openai-reasoning': openai('o1-mini'),
+    'openseek-reasoning': wrapLanguageModel({
       model: fireworks('accounts/fireworks/models/deepseek-r1'),
       middleware: extractReasoningMiddleware({ tagName: 'think' }),
     }),
@@ -53,7 +53,7 @@ export const chatModels: Array<ChatModel> = [
     description: 'Large reasoning model for complex, multi-step tasks',
   },
   {
-    id: 'openseek-R1',
+    id: 'openseek-reasoning',
     name: 'OpenSeek R1 model',
     description: 'Uses advanced reasoning',
   },
