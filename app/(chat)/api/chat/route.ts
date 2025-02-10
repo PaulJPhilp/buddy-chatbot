@@ -87,7 +87,7 @@ export async function POST(request: Request) {
           }),
         },
         onFinish: async ({ response, reasoning }) => {
-          console.log(`Finished`)
+
           if (session.user?.id) {
             try {
               const sanitizedResponseMessages = sanitizeResponseMessages({

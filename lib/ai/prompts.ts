@@ -11,7 +11,7 @@ This is a guide for using blocks tools: \`createDocument\` and \`updateDocument\
 
 **When to use \`createDocument\`:**
 - For substantial content (>10 lines) or code
-- For content users will likely save/reuse (emails, code, essays, etc.)
+- For content users will likely save/reuse (emails, code, essays, articles, posts, blogs etc.)
 - When explicitly requested to create a document
 - For when content contains a single code snippet
 

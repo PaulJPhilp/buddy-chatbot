@@ -31,10 +31,16 @@ const PureSuggestedActions = memo(function SuggestedActions({
       action: 'What is the capital of France?',
     },
     {
-      category: 'Create Document',
+      category: 'Create a Document',
       title: 'Write an article',
       label: 'about the role of men in modern marriage',
       action: 'Write an article about the role of men in modern marriage',
+    },
+    {
+      category: 'Create a Spreadsheet',
+      title: 'Write an spreadsheet',
+      label: 'that displays data from google analytics',
+      action: 'Write an spreadsheet that displays data from google analytics.',
     },
   ];
 
