@@ -1,25 +1,38 @@
 'use client';
 
-import type { ChatRequestOptions, CreateMessage, Message } from 'ai';
-import cx from 'classnames';
+import { clsx as cx } from 'clsx';
 import {
-  AnimatePresence,
   motion,
   useMotionValue,
   useTransform,
+  AnimatePresence
 } from 'framer-motion';
-
-
-import type {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
+import {
+  memo,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type Dispatch,
+  type SetStateAction,
 } from 'react';
-
-import { memo, useEffect, useRef, useState } from 'react';
-
 import { useOnClickOutside } from 'usehooks-ts';
 import { nanoid } from 'nanoid';
+import type {
+  Message,
+  CreateMessage,
+  ChatRequestOptions,
+} from 'ai';
+
+import {
+  ArrowUpIcon,
+  StopIcon,
+  SummarizeIcon,
+} from './icons';
+import type { BlockKind } from './block';
+import type { BlockToolbarItem } from './create-block';
+import type { UseChatHelpers } from 'ai/react';
+
 import {
   Tooltip,
   TooltipContent,
@@ -28,29 +41,17 @@ import {
 } from '@/components/ui/tooltip';
 import { sanitizeUIMessages } from '@/lib/utils';
 
-import {
-  ArrowUpIcon,
-  //CodeIcon,
-  //LogsIcon,
-  //MessageIcon,
-  //PenIcon,
-  //SparklesIcon,
-  StopIcon,
-  SummarizeIcon,
-} from './icons';
-import { blockDefinitions, type BlockKind } from './block';
-import type { BlockToolbarItem } from './create-block';
-import type { UseChatHelpers } from 'ai/react';
+import { blockDefinitions } from './block';
 
 type ToolProps = {
   description: string;
   icon: ReactNode;
   selectedTool: string | null;
-  setSelectedTool: Dispatch<SetStateAction<string | null>>;
+  setSelectedToolAction: Dispatch<SetStateAction<string | null>>;
   isToolbarVisible?: boolean;
-  setIsToolbarVisible?: Dispatch<SetStateAction<boolean>>;
+  setIsToolbarVisibleAction?: Dispatch<SetStateAction<boolean>>;
   isAnimating: boolean;
-  append: (
+  appendAction: (
     message: Message | CreateMessage,
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
@@ -65,11 +66,11 @@ const Tool = ({
   description,
   icon,
   selectedTool,
-  setSelectedTool,
+  setSelectedToolAction,
   isToolbarVisible,
-  setIsToolbarVisible,
+  setIsToolbarVisibleAction,
   isAnimating,
-  append,
+  appendAction,
   onClick,
 }: ToolProps) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -81,22 +82,22 @@ const Tool = ({
   }, [selectedTool, description]);
 
   const handleSelect = () => {
-    if (!isToolbarVisible && setIsToolbarVisible) {
-      setIsToolbarVisible(true);
+    if (!isToolbarVisible && setIsToolbarVisibleAction) {
+      setIsToolbarVisibleAction(true);
       return;
     }
 
     if (!selectedTool) {
       setIsHovered(true);
-      setSelectedTool(description);
+      setSelectedToolAction(description);
       return;
     }
 
     if (selectedTool !== description) {
-      setSelectedTool(description);
+      setSelectedToolAction(description);
     } else {
-      setSelectedTool(null);
-      onClick({ appendMessage: append });
+      setSelectedToolAction(null);
+      onClick({ appendMessage: appendAction });
     }
   };
 
@@ -148,13 +149,13 @@ const Tool = ({
 const randomArr = [...Array(6)].map((x) => nanoid(5));
 
 const ReadingLevelSelector = ({
-  setSelectedTool,
-  append,
+  setSelectedToolAction,
+  appendAction,
   isAnimating,
 }: {
-  setSelectedTool: Dispatch<SetStateAction<string | null>>;
+  setSelectedToolAction: Dispatch<SetStateAction<string | null>>;
   isAnimating: boolean;
-  append: (
+  appendAction: (
     message: Message | CreateMessage,
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
@@ -224,19 +225,19 @@ const ReadingLevelSelector = ({
               }}
               onDragEnd={() => {
                 if (currentLevel === 2) {
-                  setSelectedTool(null);
+                  setSelectedToolAction(null);
                 } else {
                   setHasUserSelectedLevel(true);
                 }
               }}
               onClick={() => {
                 if (currentLevel !== 2 && hasUserSelectedLevel) {
-                  append({
+                  appendAction({
                     role: 'user',
                     content: `Please adjust the reading level to ${LEVELS[currentLevel]} level.`,
                   });
 
-                  setSelectedTool(null);
+                  setSelectedToolAction(null);
                 }
               }}
             >
@@ -259,21 +260,21 @@ const ReadingLevelSelector = ({
 export const Tools = ({
   isToolbarVisible,
   selectedTool,
-  setSelectedTool,
-  append,
+  setSelectedToolAction,
+  appendAction,
   isAnimating,
-  setIsToolbarVisible,
+  setIsToolbarVisibleAction,
   tools,
 }: {
   isToolbarVisible: boolean;
   selectedTool: string | null;
-  setSelectedTool: Dispatch<SetStateAction<string | null>>;
-  append: (
+  setSelectedToolAction: Dispatch<SetStateAction<string | null>>;
+  appendAction: (
     message: Message | CreateMessage,
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
   isAnimating: boolean;
-  setIsToolbarVisible: Dispatch<SetStateAction<boolean>>;
+  setIsToolbarVisibleAction: Dispatch<SetStateAction<boolean>>;
   tools: Array<BlockToolbarItem>;
 }) => {
   const [primaryTool, ...secondaryTools] = tools;
@@ -293,8 +294,8 @@ export const Tools = ({
               description={secondaryTool.description}
               icon={secondaryTool.icon}
               selectedTool={selectedTool}
-              setSelectedTool={setSelectedTool}
-              append={append}
+              setSelectedToolAction={setSelectedToolAction}
+              appendAction={appendAction}
               isAnimating={isAnimating}
               onClick={secondaryTool.onClick}
             />
@@ -305,10 +306,10 @@ export const Tools = ({
         description={primaryTool.description}
         icon={primaryTool.icon}
         selectedTool={selectedTool}
-        setSelectedTool={setSelectedTool}
+        setSelectedToolAction={setSelectedToolAction}
         isToolbarVisible={isToolbarVisible}
-        setIsToolbarVisible={setIsToolbarVisible}
-        append={append}
+        setIsToolbarVisibleAction={setIsToolbarVisibleAction}
+        appendAction={appendAction}
         isAnimating={isAnimating}
         onClick={primaryTool.onClick}
       />
@@ -318,17 +319,17 @@ export const Tools = ({
 
 const PureToolbar = ({
   isToolbarVisible,
-  setIsToolbarVisible,
-  append,
+  setIsToolbarVisibleAction,
+  appendAction,
   isLoading,
   stop,
   setMessages,
   blockKind,
 }: {
   isToolbarVisible: boolean;
-  setIsToolbarVisible: Dispatch<SetStateAction<boolean>>;
+  setIsToolbarVisibleAction: Dispatch<SetStateAction<boolean>>;
   isLoading: boolean;
-  append: (
+  appendAction: (
     message: Message | CreateMessage,
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
@@ -339,12 +340,12 @@ const PureToolbar = ({
   const toolbarRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  const [selectedTool, setSelectedToolAction] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
 
   useOnClickOutside(toolbarRef, () => {
-    setIsToolbarVisible(false);
-    setSelectedTool(null);
+    setIsToolbarVisibleAction(false);
+    setSelectedToolAction(null);
   });
 
   const startCloseTimer = () => {
@@ -353,8 +354,8 @@ const PureToolbar = ({
     }
 
     timeoutRef.current = setTimeout(() => {
-      setSelectedTool(null);
-      setIsToolbarVisible(false);
+      setSelectedToolAction(null);
+      setIsToolbarVisibleAction(false);
     }, 2000);
   };
 
@@ -374,9 +375,9 @@ const PureToolbar = ({
 
   useEffect(() => {
     if (isLoading) {
-      setIsToolbarVisible(false);
+      setIsToolbarVisibleAction(false);
     }
-  }, [isLoading, setIsToolbarVisible]);
+  }, [isLoading, setIsToolbarVisibleAction]);
 
   const blockDefinition = blockDefinitions.find(
     (definition) => definition.kind === blockKind,
@@ -422,7 +423,7 @@ const PureToolbar = ({
           if (isLoading) return;
 
           cancelCloseTimer();
-          setIsToolbarVisible(true);
+          setIsToolbarVisibleAction(true);
         }}
         onHoverEnd={() => {
           if (isLoading) return;
@@ -454,19 +455,19 @@ const PureToolbar = ({
         ) : selectedTool === 'adjust-reading-level' ? (
           <ReadingLevelSelector
             key="reading-level-selector"
-            append={append}
-            setSelectedTool={setSelectedTool}
+            appendAction={appendAction}
+            setSelectedToolAction={setSelectedToolAction}
             isAnimating={isAnimating}
           />
         ) : (
           <Tools
             key="tools"
-            append={append}
+            appendAction={appendAction}
             isAnimating={isAnimating}
             isToolbarVisible={isToolbarVisible}
             selectedTool={selectedTool}
-            setIsToolbarVisible={setIsToolbarVisible}
-            setSelectedTool={setSelectedTool}
+            setIsToolbarVisibleAction={setIsToolbarVisibleAction}
+            setSelectedToolAction={setSelectedToolAction}
             tools={toolsByBlockKind}
           />
         )}

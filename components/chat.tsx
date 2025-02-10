@@ -18,8 +18,42 @@ import { toast } from 'sonner';
 
 import Image from 'next/image';
 
+export function Chat({
+  id,
+  initialMessages,
+  selectedChatModel,
+  selectedVisibilityType,
+  isReadonly,
+}: {
+  id: string;
+  initialMessages: Array<Message>;
+  selectedChatModel: string;
+  selectedVisibilityType: VisibilityType;
+  isReadonly: boolean;
+}) {
+  console.log('Chat render with id', id);
+
+  let usingImageModel = false;
+  initialMessages.forEach((message) => {
+    if (message.toolInvocations) {
+      message.toolInvocations.forEach((toolInvocation) => {
+        if (toolInvocation.toolName === 'generateImage') {
+          usingImageModel = true;
+        }
+      });
+    }
+  });
+
+  if (usingImageModel) {
+    return <ChatImage />;
+  }
+
+  return <ChatText id={id} initialMessages={initialMessages} selectedChatModel={selectedChatModel} selectedVisibilityType={selectedVisibilityType} isReadonly={isReadonly} />;
+}
+
 export function ChatImage() {
   const { messages, input, handleInputChange, handleSubmit } = useChat();
+  console.log('Chat Image render');
 
   return (
     <>
@@ -68,7 +102,9 @@ export function ChatImage() {
   );
 }
 
-export function Chat({
+
+
+export function ChatText({
   id,
   initialMessages,
   selectedChatModel,
@@ -81,6 +117,8 @@ export function Chat({
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
 }) {
+  console.log('ChatText render with id', id);
+
   const { mutate } = useSWRConfig();
 
   const {

@@ -10,10 +10,10 @@ import {
 } from '@/components/icons';
 import { toast } from 'sonner';
 import { generateUUID } from '@/lib/utils';
-import {
+import  {
   Console,
-  ConsoleOutput,
-  ConsoleOutputContent,
+  type ConsoleOutput,
+  type ConsoleOutputContent,
 } from '@/components/console';
 
 const OUTPUT_HANDLERS = {

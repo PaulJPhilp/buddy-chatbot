@@ -479,8 +479,8 @@ function PureBlock({
                 {isCurrentVersion && (
                   <Toolbar
                     isToolbarVisible={isToolbarVisible}
-                    setIsToolbarVisible={setIsToolbarVisible}
-                    append={append}
+                    setIsToolbarVisibleAction={setIsToolbarVisible}
+                    appendAction={append}
                     isLoading={isLoading}
                     stop={stop}
                     setMessages={setMessages}

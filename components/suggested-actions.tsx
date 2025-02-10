@@ -42,6 +42,12 @@ const PureSuggestedActions = memo(function SuggestedActions({
       label: 'that displays data from google analytics',
       action: 'Write an spreadsheet that displays data from google analytics.',
     },
+    {
+      category: 'Create an Image',
+      title: 'Create an image',
+      label: 'of a cat wearing a fedora and glasses',
+      action: 'Create an image of a cat wearing a fedora and glasses.',
+    },
   ];
 
   return (
