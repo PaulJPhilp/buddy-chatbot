@@ -67,6 +67,7 @@ function PureMultimodalInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  console.log('MultimodalInput render with width', width?.toString());
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -340,10 +341,12 @@ function PureSendButton({
   input: string;
   uploadQueue: Array<string>;
 }) {
+  console.log(`SendButton: ${input} changed`);
   return (
     <Button
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
+      className="rounded-full p-1.5 h-fit border dark:border-orange-600"
       onClick={(event) => {
+        console.log(`SendButton: ${input} clicked`);
         event.preventDefault();
         submitForm();
       }}

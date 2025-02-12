@@ -7,6 +7,7 @@ import { DataStreamHandler } from '@/components/data-stream-handler';
 
 export default async function Page() {
   const id = generateUUID();
+  console.log('AppChat: ', id);
 
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get('chat-model');

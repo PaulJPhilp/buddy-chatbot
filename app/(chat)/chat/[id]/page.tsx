@@ -9,8 +9,11 @@ import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
+  console.log('Single Chat.Page')
+
   const params = await props.params;
   const { id } = params;
+  console.log('Single Chat.Page: ', id);
   const chat = await getChatById({ id });
 
   if (!chat) {

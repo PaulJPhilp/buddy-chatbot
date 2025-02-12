@@ -16,7 +16,7 @@ import {
   message,
   vote,
 } from './schema';
-import { BlockKind } from '@/components/block';
+import type { BlockKind } from '@/components/block';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -167,6 +167,18 @@ export async function getVotesByChatId({ id }: { id: string }) {
   }
 }
 
+export async function listAllDocuments() {
+  try {
+    return await db
+      .select()
+      .from(document)
+      .orderBy(asc(document.createdAt));
+  } catch (error) {
+    console.error('Failed to list all documents from database', error);
+    throw error;
+  }
+}
+
 export async function saveDocument({
   id,
   title,
@@ -220,7 +232,7 @@ export async function getDocumentById({ id }: { id: string }) {
 
     return selectedDocument;
   } catch (error) {
-    console.error('Failed to get document by id from database');
+    console.error('Failed to get document by id from database', error);
     throw error;
   }
 }

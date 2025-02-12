@@ -2,8 +2,8 @@
 
 import { useChat } from 'ai/react';
 import { useEffect, useRef } from 'react';
-import { blockDefinitions, BlockKind } from './block';
-import { Suggestion } from '@/lib/db/schema';
+import { blockDefinitions, type BlockKind } from './block';
+import type { Suggestion } from '@/lib/db/schema';
 import { initialBlockData, useBlock } from '@/hooks/use-block';
 
 export type DataStreamDelta = {
@@ -12,6 +12,8 @@ export type DataStreamDelta = {
     | 'code-delta'
     | 'sheet-delta'
     | 'image-delta'
+    | 'widget-update'
+    | 'content-update'
     | 'title'
     | 'id'
     | 'suggestion'

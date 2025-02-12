@@ -1,9 +1,9 @@
-import { ChatRequestOptions, Message } from 'ai';
+import type { ChatRequestOptions, Message } from 'ai';
 import { PreviewMessage, ThinkingMessage } from './message';
 import { useScrollToBottom } from './use-scroll-to-bottom';
 import { Overview } from './overview';
 import { memo } from 'react';
-import { Vote } from '@/lib/db/schema';
+import type { Vote } from '@/lib/db/schema';
 import equal from 'fast-deep-equal';
 
 interface MessagesProps {
@@ -70,6 +70,7 @@ function PureMessages({
 }
 
 export const Messages = memo(PureMessages, (prevProps, nextProps) => {
+  console.log('Messages render');
   if (prevProps.isBlockVisible && nextProps.isBlockVisible) return true;
 
   if (prevProps.isLoading !== nextProps.isLoading) return false;

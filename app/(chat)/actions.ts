@@ -3,6 +3,7 @@
 import { generateText, type Message } from 'ai';
 import { cookies } from 'next/headers';
 
+
 import {
   deleteMessagesByChatIdAfterTimestamp,
   getMessageById,
@@ -52,3 +53,4 @@ export async function updateChatVisibility({
 }) {
   await updateChatVisiblityById({ chatId, visibility });
 }
+

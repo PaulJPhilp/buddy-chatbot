@@ -8,12 +8,12 @@ import {
   wrapLanguageModel,
 } from 'ai';
 
-export const DEFAULT_CHAT_MODEL: string = 'openai-small';
+export const DEFAULT_CHAT_MODEL: string = 'gpt-4o-mini';
 
 export const myProvider = customProvider({
   languageModels: {
-    'openai-small': openai('gpt-4o-mini'),
-    'openai-large': openai('gpt-4o'),
+    'gpt-4o-mini': openai('gpt-4o-mini'),
+    'gpt-4o': openai('gpt-4o'),
     'openai-reasoning': openai('o1-mini'),
     'openseek-reasoning': wrapLanguageModel({
       model: fireworks('accounts/fireworks/models/deepseek-r1'),
@@ -38,13 +38,13 @@ interface ChatModel {
 
 export const chatModels: Array<ChatModel> = [
   {
-    id: 'openai-small',
-    name: 'Small model',
+    id: 'gpt-4o-mini',
+    name: 'gpt-4o-mini',
     description: 'Small model for fast, lightweight tasks',
   },
   {
-    id: 'openai-large',
-    name: 'Large model',
+    id: 'gpt-4o',
+    name: 'gpt-4o',
     description: 'Large model for complex, multi-step tasks',
   },
   {

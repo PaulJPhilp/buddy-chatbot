@@ -3,56 +3,16 @@
 import cx from 'classnames';
 import { format, isWithinInterval } from 'date-fns';
 import { useEffect, useState } from 'react';
+import type { WeatherAtLocation } from '@/lib/types';
 
-interface WeatherAtLocation {
-  latitude: number;
-  longitude: number;
-  generationtime_ms: number;
-  utc_offset_seconds: number;
-  timezone: string;
-  timezone_abbreviation: string;
-  elevation: number;
-  current_units: {
-    time: string;
-    interval: string;
-    temperature_2m: string;
-  };
-  current: {
-    time: string;
-    interval: number;
-    temperature_2m: number;
-  };
-  hourly_units: {
-    time: string;
-    temperature_2m: string;
-  };
-  hourly: {
-    time: string[];
-    temperature_2m: number[];
-  };
-  daily_units: {
-    time: string;
-    sunrise: string;
-    sunset: string;
-  };
-  daily: {
-    time: string[];
-    sunrise: string[];
-    sunset: string[];
-  };
-}
-
-const SAMPLE = {
+const SAMPLE: WeatherAtLocation = {
   latitude: 37.763283,
   longitude: -122.41286,
   generationtime_ms: 0.027894973754882812,
-  utc_offset_seconds: 0,
   timezone: 'GMT',
-  timezone_abbreviation: 'GMT',
-  elevation: 18,
-  current_units: { time: 'iso8601', interval: 'seconds', temperature_2m: '°C' },
-  current: { time: '2024-10-07T19:30', interval: 900, temperature_2m: 29.3 },
-  hourly_units: { time: 'iso8601', temperature_2m: '°C' },
+  current_units: { time: 'iso8601', interval: 'seconds', temperature: '°C' },
+  current: { time: '2024-10-07T19:30', interval: 900, temperature: 29.3 },
+  hourly_units: { time: 'iso8601', temperature: '°C' },
   hourly: {
     time: [
       '2024-10-07T00:00',
@@ -156,7 +116,7 @@ const SAMPLE = {
       '2024-10-11T02:00',
       '2024-10-11T03:00',
     ],
-    temperature_2m: [
+    temperature: [
       36.6, 32.8, 29.5, 28.6, 29.2, 28.2, 27.5, 26.6, 26.5, 26, 25, 23.5, 23.9,
       24.2, 22.9, 21, 24, 28.1, 31.4, 33.9, 32.1, 28.9, 26.9, 25.2, 23, 21.1,
       19.6, 18.6, 17.7, 16.8, 16.2, 15.5, 14.9, 14.4, 14.2, 13.7, 13.3, 12.9,
@@ -207,16 +167,24 @@ export function Weather({
   weatherAtLocation?: WeatherAtLocation;
 }) {
   const currentHigh = Math.max(
-    ...weatherAtLocation.hourly.temperature_2m.slice(0, 24),
+    ...weatherAtLocation.hourly.temperature.slice(0, 24),
   );
   const currentLow = Math.min(
-    ...weatherAtLocation.hourly.temperature_2m.slice(0, 24),
+    ...weatherAtLocation.hourly.temperature.slice(0, 24),
+  );
+
+  console.log(
+    `currentHigh: ${currentHigh}, currentLow: ${currentLow}`,
   );
 
   const isDay = isWithinInterval(new Date(weatherAtLocation.current.time), {
     start: new Date(weatherAtLocation.daily.sunrise[0]),
     end: new Date(weatherAtLocation.daily.sunset[0]),
   });
+
+  console.log(
+    `isDay: ${isDay}, currentHigh: ${currentHigh}, currentLow: ${currentLow}`,
+  );
 
   const [isMobile, setIsMobile] = useState(false);
 
@@ -243,7 +211,7 @@ export function Weather({
     currentTimeIndex,
     currentTimeIndex + hoursToShow,
   );
-  const displayTemperatures = weatherAtLocation.hourly.temperature_2m.slice(
+  const displayTemperatures = weatherAtLocation.hourly.temperature.slice(
     currentTimeIndex,
     currentTimeIndex + hoursToShow,
   );
@@ -274,8 +242,8 @@ export function Weather({
             )}
           />
           <div className="text-4xl font-medium text-blue-50">
-            {n(weatherAtLocation.current.temperature_2m)}
-            {weatherAtLocation.current_units.temperature_2m}
+            {n(weatherAtLocation.current.temperature)}
+            {weatherAtLocation.current_units.temperature}
           </div>
         </div>
 
@@ -301,7 +269,7 @@ export function Weather({
             />
             <div className="text-blue-50 text-sm">
               {n(displayTemperatures[index])}
-              {weatherAtLocation.hourly_units.temperature_2m}
+              {weatherAtLocation.hourly_units.temperature}
             </div>
           </div>
         ))}

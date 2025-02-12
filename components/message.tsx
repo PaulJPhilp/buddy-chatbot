@@ -3,14 +3,12 @@
 import type { ChatRequestOptions, Message } from 'ai';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
-import { memo, useMemo, useState } from 'react';
+import { memo, useState } from 'react';
 
 import type { Vote } from '@/lib/db/schema';
 
 import { DocumentToolCall, DocumentToolResult } from './document';
 import {
-  ChevronDownIcon,
-  LoaderIcon,
   PencilEditIcon,
   SparklesIcon,
 } from './icons';
@@ -47,6 +45,15 @@ const PurePreviewMessage = ({
   ) => Promise<string | null | undefined>;
   isReadonly: boolean;
 }) => {
+  console.log('PreviewMessage render with message', message);
+  if (
+    message.role === 'assistant' &&
+    message.toolInvocations &&
+    message.toolInvocations.length > 0 &&
+    message.toolInvocations[0].toolName === 'listDocuments'
+  )
+    return <></>;
+
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
   return (
@@ -69,7 +76,7 @@ const PurePreviewMessage = ({
           {message.role === 'assistant' && (
             <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border bg-background">
               <div className="translate-y-px">
-                <SparklesIcon size={14} />
+                <SparklesIcon size={24} />
               </div>
             </div>
           )}

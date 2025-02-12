@@ -30,14 +30,16 @@ import { imageBlock } from '@/blocks/image/client';
 import { codeBlock } from '@/blocks/code/client';
 import { sheetBlock } from '@/blocks/sheet/client';
 import { textBlock } from '@/blocks/text/client';
+import { widgetBlock } from '@/blocks/widget/client';
 import equal from 'fast-deep-equal';
 
-export const blockDefinitions = [textBlock, codeBlock, imageBlock, sheetBlock];
+export const blockDefinitions = [textBlock, codeBlock, imageBlock, sheetBlock, widgetBlock];
 export type BlockKind = (typeof blockDefinitions)[number]['kind'];
 
 export interface UIBlock {
   title: string;
-  documentId: string;
+  documentId?: string;
+  chatId: string;
   kind: BlockKind;
   content: string;
   isVisible: boolean;
@@ -48,6 +50,48 @@ export interface UIBlock {
     width: number;
     height: number;
   };
+}
+
+interface UIBlockProps {
+  block: UIBlock;
+  id: string;
+}
+
+export const WidgetBlock = function WidgetBlock(props: UIBlockProps) {
+  const {
+    data: documents,
+    isLoading: isDocumentsFetching,
+    mutate: mutateDocuments,
+  } = useSWR<Array<Document>>(null, fetcher)
+
+  const { open: isSidebarOpen } = useSidebar()
+  const { block, setBlock, metadata, setMetadata } = useBlock()
+
+  useEffect(() => {
+    //console.log(`Block: ${block.kind} changed`, block);
+    if (props.block.kind === 'widget') {
+      const list: Document[] = []
+      let text = ''
+      for (const document of documents ?? []) {
+        text += document.title
+        list.push(document)
+      }
+      setBlock((currentBlock) => ({
+        ...currentBlock,
+        content: text,
+      }))
+    }
+  }, [documents, setBlock])
+
+
+  return (
+    <>
+      <div>
+        <h1>{props.block.title}</h1>
+        <p>{props.block.content}</p>
+      </div>
+    </>
+  )
 }
 
 function PureBlock({
@@ -66,32 +110,33 @@ function PureBlock({
   votes,
   isReadonly,
 }: {
-  chatId: string;
-  input: string;
-  setInput: (input: string) => void;
-  isLoading: boolean;
-  stop: () => void;
-  attachments: Array<Attachment>;
-  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
-  messages: Array<Message>;
-  setMessages: Dispatch<SetStateAction<Array<Message>>>;
-  votes: Array<Vote> | undefined;
+  chatId: string
+  input: string
+  setInput: (input: string) => void
+  isLoading: boolean
+  stop: () => void
+  attachments: Array<Attachment>
+  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>
+  messages: Array<Message>
+  setMessages: Dispatch<SetStateAction<Array<Message>>>
+  votes: Array<Vote> | undefined
   append: (
     message: Message | CreateMessage,
     chatRequestOptions?: ChatRequestOptions,
-  ) => Promise<string | null | undefined>;
+  ) => Promise<string | null | undefined>
   handleSubmit: (
     event?: {
-      preventDefault?: () => void;
+      preventDefault?: () => void
     },
     chatRequestOptions?: ChatRequestOptions,
-  ) => void;
+  ) => void
   reload: (
     chatRequestOptions?: ChatRequestOptions,
-  ) => Promise<string | null | undefined>;
-  isReadonly: boolean;
+  ) => Promise<string | null | undefined>
+  isReadonly: boolean
 }) {
-  const { block, setBlock, metadata, setMetadata } = useBlock();
+  //console.log("New Block")
+  const { block, setBlock, metadata, setMetadata } = useBlock()
 
   const {
     data: documents,
@@ -102,50 +147,64 @@ function PureBlock({
       ? `/api/document?id=${block.documentId}`
       : null,
     fetcher,
-  );
+  )
 
-  const [mode, setMode] = useState<'edit' | 'diff'>('edit');
-  const [document, setDocument] = useState<Document | null>(null);
-  const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
+  const [mode, setMode] = useState<'edit' | 'diff'>('edit') // widget
+  const [document, setDocument] = useState<Document | null>(null)
+  const [currentVersionIndex, setCurrentVersionIndex] = useState(-1)
 
-  const { open: isSidebarOpen } = useSidebar();
+  const { open: isSidebarOpen } = useSidebar()
 
   useEffect(() => {
-    if (documents && documents.length > 0) {
-      const mostRecentDocument = documents.at(-1);
+    //console.log(`Block: ${block.kind} changed`, block);
+    if (block.kind === 'widget') {
+      setDocument(null)
+      setCurrentVersionIndex(-1)
+      const list: Document[] = []
+      let text = ''
+      for (const document of documents ?? []) {
+        text += document.title
+        list.push(document)
+      }
+      setBlock((currentBlock) => ({
+        ...currentBlock,
+        content: text,
+      }))
+    } else if (documents && documents.length > 0) {
+      const mostRecentDocument = documents.at(-1)
 
       if (mostRecentDocument) {
-        setDocument(mostRecentDocument);
-        setCurrentVersionIndex(documents.length - 1);
+        setDocument(mostRecentDocument)
+        setCurrentVersionIndex(documents.length - 1)
         setBlock((currentBlock) => ({
           ...currentBlock,
           content: mostRecentDocument.content ?? '',
-        }));
+        }))
       }
     }
-  }, [documents, setBlock]);
+  }, [documents, setBlock])
 
   useEffect(() => {
-    mutateDocuments();
-  }, [block.status, mutateDocuments]);
+    mutateDocuments()
+  }, [block.status, mutateDocuments])
 
-  const { mutate } = useSWRConfig();
-  const [isContentDirty, setIsContentDirty] = useState(false);
+  const { mutate } = useSWRConfig()
+  const [isContentDirty, setIsContentDirty] = useState(false)
 
   const handleContentChange = useCallback(
     (updatedContent: string) => {
-      if (!block) return;
+      if (!block) return
 
       mutate<Array<Document>>(
         `/api/document?id=${block.documentId}`,
         async (currentDocuments) => {
-          if (!currentDocuments) return undefined;
+          if (!currentDocuments) return undefined
 
-          const currentDocument = currentDocuments.at(-1);
+          const currentDocument = currentDocuments.at(-1)
 
           if (!currentDocument || !currentDocument.content) {
-            setIsContentDirty(false);
-            return currentDocuments;
+            setIsContentDirty(false)
+            return currentDocuments
           }
 
           if (currentDocument.content !== updatedContent) {
@@ -156,76 +215,78 @@ function PureBlock({
                 content: updatedContent,
                 kind: block.kind,
               }),
-            });
+            })
 
-            setIsContentDirty(false);
+            setIsContentDirty(false)
 
             const newDocument = {
               ...currentDocument,
               content: updatedContent,
               createdAt: new Date(),
-            };
+            }
 
-            return [...currentDocuments, newDocument];
+            return [...currentDocuments, newDocument]
           }
-          return currentDocuments;
+          return currentDocuments
         },
         { revalidate: false },
-      );
+      )
     },
     [block, mutate],
-  );
+  )
 
   const debouncedHandleContentChange = useDebounceCallback(
     handleContentChange,
     2000,
-  );
+  )
 
   const saveContent = useCallback(
     (updatedContent: string, debounce: boolean) => {
       if (document && updatedContent !== document.content) {
-        setIsContentDirty(true);
+        setIsContentDirty(true)
 
         if (debounce) {
-          debouncedHandleContentChange(updatedContent);
+          debouncedHandleContentChange(updatedContent)
         } else {
-          handleContentChange(updatedContent);
+          handleContentChange(updatedContent)
         }
       }
     },
     [document, debouncedHandleContentChange, handleContentChange],
-  );
+  )
 
   function getDocumentContentById(index: number) {
-    if (!documents) return '';
-    if (!documents[index]) return '';
-    return documents[index].content ?? '';
+    if (!documents) return ''
+    if (!documents[index]) return ''
+    return documents[index].content ?? ''
   }
 
-  const handleVersionChange = (type: 'next' | 'prev' | 'toggle' | 'latest') => {
-    if (!documents) return;
+  const handleVersionChange = (
+    type: 'next' | 'prev' | 'toggle' | 'latest',
+  ) => {
+    if (!documents) return
 
     if (type === 'latest') {
-      setCurrentVersionIndex(documents.length - 1);
-      setMode('edit');
+      setCurrentVersionIndex(documents.length - 1)
+      setMode('edit')
     }
 
     if (type === 'toggle') {
-      setMode((mode) => (mode === 'edit' ? 'diff' : 'edit'));
+      setMode((mode) => (mode === 'edit' ? 'diff' : 'edit'))
     }
 
     if (type === 'prev') {
       if (currentVersionIndex > 0) {
-        setCurrentVersionIndex((index) => index - 1);
+        setCurrentVersionIndex((index) => index - 1)
       }
     } else if (type === 'next') {
       if (currentVersionIndex < documents.length - 1) {
-        setCurrentVersionIndex((index) => index + 1);
+        setCurrentVersionIndex((index) => index + 1)
       }
     }
-  };
+  }
 
-  const [isToolbarVisible, setIsToolbarVisible] = useState(false);
+  const [isToolbarVisible, setIsToolbarVisible] = useState(false)
 
   /*
    * NOTE: if there are no documents, or if
@@ -236,29 +297,31 @@ function PureBlock({
   const isCurrentVersion =
     documents && documents.length > 0
       ? currentVersionIndex === documents.length - 1
-      : true;
+      : true
 
-  const { width: windowWidth, height: windowHeight } = useWindowSize();
-  const isMobile = windowWidth ? windowWidth < 768 : false;
+  const { width: windowWidth, height: windowHeight } = useWindowSize()
+  const isMobile = windowWidth ? windowWidth < 768 : false
 
   const blockDefinition = blockDefinitions.find(
     (definition) => definition.kind === block.kind,
-  );
+  )
 
   if (!blockDefinition) {
-    throw new Error('Block definition not found!');
+    throw new Error('Block definition not found!')
   }
+
+  console.log('Block Render: ', block.kind)
 
   useEffect(() => {
     if (block.documentId !== 'init') {
       if (blockDefinition.initialize) {
         blockDefinition.initialize({
-          documentId: block.documentId,
+          documentId: block.documentId ?? '',
           setMetadata,
-        });
+        })
       }
     }
-  }, [block.documentId, blockDefinition, setMetadata]);
+  }, [block.documentId, blockDefinition, setMetadata])
 
   return (
     <AnimatePresence>
@@ -317,7 +380,7 @@ function PureBlock({
                 )}
               </AnimatePresence>
 
-              <div className="flex flex-col h-full justify-between items-center gap-4">
+              <div className="flex flex-col h-full justify-between items-center gap-4 border-2 border-orange-500 dark:border-zinc-700">
                 <BlockMessages
                   chatId={chatId}
                   isLoading={isLoading}
@@ -354,56 +417,56 @@ function PureBlock({
             initial={
               isMobile
                 ? {
-                    opacity: 1,
-                    x: block.boundingBox.left,
-                    y: block.boundingBox.top,
-                    height: block.boundingBox.height,
-                    width: block.boundingBox.width,
-                    borderRadius: 50,
-                  }
+                  opacity: 1,
+                  x: block.boundingBox.left,
+                  y: block.boundingBox.top,
+                  height: block.boundingBox.height,
+                  width: block.boundingBox.width,
+                  borderRadius: 50,
+                }
                 : {
-                    opacity: 1,
-                    x: block.boundingBox.left,
-                    y: block.boundingBox.top,
-                    height: block.boundingBox.height,
-                    width: block.boundingBox.width,
-                    borderRadius: 50,
-                  }
+                  opacity: 1,
+                  x: block.boundingBox.left,
+                  y: block.boundingBox.top,
+                  height: block.boundingBox.height,
+                  width: block.boundingBox.width,
+                  borderRadius: 50,
+                }
             }
             animate={
               isMobile
                 ? {
-                    opacity: 1,
-                    x: 0,
-                    y: 0,
-                    height: windowHeight,
-                    width: windowWidth ? windowWidth : 'calc(100dvw)',
-                    borderRadius: 0,
-                    transition: {
-                      delay: 0,
-                      type: 'spring',
-                      stiffness: 200,
-                      damping: 30,
-                      duration: 5000,
-                    },
-                  }
+                  opacity: 1,
+                  x: 0,
+                  y: 0,
+                  height: windowHeight,
+                  width: windowWidth ? windowWidth : 'calc(100dvw)',
+                  borderRadius: 0,
+                  transition: {
+                    delay: 0,
+                    type: 'spring',
+                    stiffness: 200,
+                    damping: 30,
+                    duration: 5000,
+                  },
+                }
                 : {
-                    opacity: 1,
-                    x: 400,
-                    y: 0,
-                    height: windowHeight,
-                    width: windowWidth
-                      ? windowWidth - 400
-                      : 'calc(100dvw-400px)',
-                    borderRadius: 0,
-                    transition: {
-                      delay: 0,
-                      type: 'spring',
-                      stiffness: 200,
-                      damping: 30,
-                      duration: 5000,
-                    },
-                  }
+                  opacity: 1,
+                  x: 400,
+                  y: 0,
+                  height: windowHeight,
+                  width: windowWidth
+                    ? windowWidth - 400
+                    : 'calc(100dvw-400px)',
+                  borderRadius: 0,
+                  transition: {
+                    delay: 0,
+                    type: 'spring',
+                    stiffness: 200,
+                    damping: 30,
+                    duration: 5000,
+                  },
+                }
             }
             exit={{
               opacity: 0,
@@ -503,14 +566,15 @@ function PureBlock({
         </motion.div>
       )}
     </AnimatePresence>
-  );
+  )
 }
 
 export const Block = memo(PureBlock, (prevProps, nextProps) => {
   if (prevProps.isLoading !== nextProps.isLoading) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (prevProps.input !== nextProps.input) return false;
-  if (!equal(prevProps.messages, nextProps.messages.length)) return false;
+  if (!equal(prevProps.messages, nextProps.messages)) return false;
 
   return true;
 });
+

@@ -28,6 +28,9 @@ This is a guide for using blocks tools: \`createDocument\` and \`updateDocument\
 **When NOT to use \`updateDocument\`:**
 - Immediately after creating a document
 
+**When to use \`listDocument\`:**
+- When explicitly requested to list documents
+
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 

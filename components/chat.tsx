@@ -32,6 +32,7 @@ export function Chat({
   isReadonly: boolean;
 }) {
   console.log('Chat render with id', id);
+  console.log('Chat render with initialMessages', initialMessages.length);
 
   let usingImageModel = false;
   initialMessages.forEach((message) => {
@@ -57,48 +58,48 @@ export function ChatImage() {
 
   return (
     <>
-    <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
-      <div className="space-y-4">
-        {messages.map(m => (
-          <div key={m.id} className="whitespace-pre-wrap">
-            <div key={m.id}>
-              <div className="font-bold">{m.role}</div>
-              {m.toolInvocations ? (
-                m.toolInvocations.map(ti =>
-                  ti.toolName === 'generateImage' ? (
-                    ti.state === 'result' ? (
-                      <Image
-                        key={ti.toolCallId}
-                        src={`data:image/png;base64,${ti.result.image}`}
-                        alt={ti.result.prompt}
-                        height={400}
-                        width={400}
-                      />
-                    ) : (
-                      <div key={ti.toolCallId} className="animate-pulse">
-                        Generating image...
-                      </div>
-                    )
-                  ) : null,
-                )
-              ) : (
-                <p>{m.content}</p>
-              )}
+      <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
+        <div className="space-y-4">
+          {messages.map(m => (
+            <div key={m.id} className="whitespace-pre-wrap">
+              <div key={m.id}>
+                <div className="font-bold">{m.role}</div>
+                {m.toolInvocations ? (
+                  m.toolInvocations.map(ti =>
+                    ti.toolName === 'generateImage' ? (
+                      ti.state === 'result' ? (
+                        <Image
+                          key={ti.toolCallId}
+                          src={`data:image/png;base64,${ti.result.image}`}
+                          alt={ti.result.prompt}
+                          height={400}
+                          width={400}
+                        />
+                      ) : (
+                        <div key={ti.toolCallId} className="animate-pulse">
+                          Generating image...
+                        </div>
+                      )
+                    ) : null,
+                  )
+                ) : (
+                  <p>{m.content}</p>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
-          value={input}
-          placeholder="Say something..."
-          onChange={handleInputChange}
-        />
-      </form>
-    </div>
-  </>
+        <form onSubmit={handleSubmit}>
+          <input
+            className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl"
+            value={input}
+            placeholder="Say something..."
+            onChange={handleInputChange}
+          />
+        </form>
+      </div>
+    </>
   );
 }
 
@@ -175,6 +176,7 @@ export function ChatText({
           isBlockVisible={isBlockVisible}
         />
 
+
         <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
           {!isReadonly && (
             <MultimodalInput
@@ -194,22 +196,24 @@ export function ChatText({
         </form>
       </div>
 
-      <Block
-        chatId={id}
-        input={input}
-        setInput={setInput}
-        handleSubmit={handleSubmit}
-        isLoading={isLoading}
-        stop={stop}
-        attachments={attachments}
-        setAttachments={setAttachments}
-        append={append}
-        messages={messages}
-        setMessages={setMessages}
-        reload={reload}
-        votes={votes}
-        isReadonly={isReadonly}
-      />
+      <div className="background-blue-500">
+        <Block
+          chatId={id}
+          input={input}
+          setInput={setInput}
+          handleSubmit={handleSubmit}
+          isLoading={isLoading}
+          stop={stop}
+          attachments={attachments}
+          setAttachments={setAttachments}
+          append={append}
+          messages={messages}
+          setMessages={setMessages}
+          reload={reload}
+          votes={votes}
+          isReadonly={isReadonly}
+        />
+      </div>
     </>
   );
 }

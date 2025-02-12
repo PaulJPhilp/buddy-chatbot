@@ -5,6 +5,7 @@ import type { UIBlock } from '@/components/block';
 import { useCallback, useMemo } from 'react';
 
 export const initialBlockData: UIBlock = {
+  chatId: '',
   documentId: 'init',
   content: '',
   kind: 'text',
@@ -22,6 +23,7 @@ export const initialBlockData: UIBlock = {
 type Selector<T> = (state: UIBlock) => T;
 
 export function useBlockSelector<Selected>(selector: Selector<Selected>) {
+  console.log(`useBlockSelector(${selector.name})`);
   const { data: localBlock } = useSWR<UIBlock>('block', null, {
     fallbackData: initialBlockData,
   });
@@ -35,6 +37,8 @@ export function useBlockSelector<Selected>(selector: Selector<Selected>) {
 }
 
 export function useBlock() {
+  console.log(`useBlock`)
+
   const { data: localBlock, mutate: setLocalBlock } = useSWR<UIBlock>(
     'block',
     null,
@@ -62,6 +66,8 @@ export function useBlock() {
     },
     [setLocalBlock],
   );
+
+  console.log('block', block.kind);
 
   const { data: localBlockMetadata, mutate: setLocalBlockMetadata } =
     useSWR<any>(
