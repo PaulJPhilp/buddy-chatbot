@@ -2,16 +2,16 @@
 
 import {
   memo,
-  MouseEvent,
   useCallback,
   useEffect,
   useMemo,
   useRef,
+  type MouseEvent,
 } from 'react';
-import { BlockKind, UIBlock } from './block';
+import type { BlockKind, UIBlock } from './block';
 import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from './icons';
 import { cn, fetcher } from '@/lib/utils';
-import { Document } from '@/lib/db/schema';
+import type { Document } from '@/lib/db/schema';
 import { InlineDocumentSkeleton } from './document-skeleton';
 import useSWR from 'swr';
 import { Editor } from './editor';
@@ -84,9 +84,8 @@ export function DocumentPreview({
     return <LoadingSkeleton blockKind={result.kind ?? args.kind} />;
   }
 
-  const document: Document | null = previewDocument
-    ? previewDocument
-    : block.status === 'streaming'
+  const document: Document = previewDocument ?? (
+    block.status === 'streaming'
       ? {
           title: block.title,
           kind: block.kind,
@@ -95,7 +94,15 @@ export function DocumentPreview({
           createdAt: new Date(),
           userId: 'noop',
         }
-      : null;
+      : {
+          title: '',
+          kind: args.kind,
+          content: null,
+          id: '',
+          createdAt: new Date(),
+          userId: 'noop',
+        }
+  );
 
   if (!document) return <LoadingSkeleton blockKind={block.kind} />;
 

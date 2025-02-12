@@ -38,7 +38,7 @@ export type BlockKind = (typeof blockDefinitions)[number]['kind'];
 
 export interface UIBlock {
   title: string;
-  documentId?: string;
+  documentId: string;
   chatId: string;
   kind: BlockKind;
   content: string;

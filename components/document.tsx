@@ -58,6 +58,7 @@ function PureDocumentToolResult({
         };
 
         setBlock({
+          chatId: '',
           documentId: result.id,
           kind: result.kind,
           content: '',
