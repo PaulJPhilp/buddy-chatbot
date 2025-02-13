@@ -11,7 +11,7 @@ export const Overview = () => {
       transition={{ delay: 0.5 }}
     >
       <div className="rounded-xl p-6 flex flex-col gap-8 leading-relaxed text-center max-w-xl">
-  
+        Welcome to BuddyChat!
       </div>
     </motion.div>
   );

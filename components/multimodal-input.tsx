@@ -120,7 +120,7 @@ function PureMultimodalInput({
 
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
-
+    console.log('submitForm');
     handleSubmit(undefined, {
       experimental_attachments: attachments,
     });
@@ -237,7 +237,7 @@ function PureMultimodalInput({
         value={input}
         onChange={handleInput}
         className={cx(
-          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',
+          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-orange-700',
           className,
         )}
         rows={2}
@@ -341,12 +341,11 @@ function PureSendButton({
   input: string;
   uploadQueue: Array<string>;
 }) {
-  console.log(`SendButton: ${input} changed`);
+
   return (
     <Button
-      className="rounded-full p-1.5 h-fit border dark:border-orange-600"
+      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
       onClick={(event) => {
-        console.log(`SendButton: ${input} clicked`);
         event.preventDefault();
         submitForm();
       }}

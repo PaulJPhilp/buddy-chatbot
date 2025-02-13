@@ -32,7 +32,6 @@ export function Chat({
   isReadonly: boolean;
 }) {
   console.log('Chat render with id', id);
-  console.log('Chat render with initialMessages', initialMessages.length);
 
   let usingImageModel = false;
   initialMessages.forEach((message) => {
@@ -102,8 +101,6 @@ export function ChatImage() {
     </>
   );
 }
-
-
 
 export function ChatText({
   id,

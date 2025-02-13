@@ -32,6 +32,7 @@ function PureMessages({
 }: MessagesProps) {
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
+  console.log('PureMessages()')
 
   return (
     <div
@@ -79,5 +80,6 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
   if (!equal(prevProps.messages, nextProps.messages)) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
 
+  console.log("Messages re-render")
   return true;
 });

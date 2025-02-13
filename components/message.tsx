@@ -15,7 +15,7 @@ import {
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
-import { Weather } from './weather';
+import { ExtendableWeather } from './weather';
 import equal from 'fast-deep-equal';
 import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
@@ -45,14 +45,7 @@ const PurePreviewMessage = ({
   ) => Promise<string | null | undefined>;
   isReadonly: boolean;
 }) => {
-  console.log('PreviewMessage render with message', message);
-  if (
-    message.role === 'assistant' &&
-    message.toolInvocations &&
-    message.toolInvocations.length > 0 &&
-    message.toolInvocations[0].toolName === 'listDocuments'
-  )
-    return <></>;
+  console.log('PreviewMessage render with message', message)
 
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
@@ -76,7 +69,7 @@ const PurePreviewMessage = ({
           {message.role === 'assistant' && (
             <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border bg-background">
               <div className="translate-y-px">
-                <SparklesIcon size={24} />
+                <SparklesIcon size={14} />
               </div>
             </div>
           )}
@@ -155,7 +148,7 @@ const PurePreviewMessage = ({
                     return (
                       <div key={toolCallId}>
                         {toolName === 'getWeather' ? (
-                          <Weather weatherAtLocation={result} />
+                          <ExtendableWeather weatherAtLocation={result} />
                         ) : toolName === 'createDocument' ? (
                           <DocumentPreview
                             isReadonly={isReadonly}
@@ -187,7 +180,7 @@ const PurePreviewMessage = ({
                       })}
                     >
                       {toolName === 'getWeather' ? (
-                        <Weather />
+                        <ExtendableWeather/>
                       ) : toolName === 'createDocument' ? (
                         <DocumentPreview isReadonly={isReadonly} args={args} />
                       ) : toolName === 'updateDocument' ? (
@@ -247,6 +240,7 @@ export const PreviewMessage = memo(
 
 export const ThinkingMessage = () => {
   const role = 'assistant';
+  console.log('Thinking Message')
 
   return (
     <motion.div

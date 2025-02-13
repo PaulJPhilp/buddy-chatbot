@@ -135,7 +135,7 @@ function PureBlock({
   ) => Promise<string | null | undefined>
   isReadonly: boolean
 }) {
-  //console.log("New Block")
+  console.log("New Block")
   const { block, setBlock, metadata, setMetadata } = useBlock()
 
   const {
@@ -310,7 +310,7 @@ function PureBlock({
     throw new Error('Block definition not found!')
   }
 
-  console.log('Block Render: ', block.kind)
+  //console.log('Block Render: ', block.kind)
 
   useEffect(() => {
     if (block.documentId !== 'init') {
@@ -380,7 +380,7 @@ function PureBlock({
                 )}
               </AnimatePresence>
 
-              <div className="flex flex-col h-full justify-between items-center gap-4 border-2 border-orange-500 dark:border-zinc-700">
+              <div className="flex flex-col h-full justify-between items-center gap-4 border-2 border-blue-500 dark:border-zinc-700">
                 <BlockMessages
                   chatId={chatId}
                   isLoading={isLoading}
