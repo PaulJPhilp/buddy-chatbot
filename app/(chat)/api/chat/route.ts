@@ -7,7 +7,7 @@ import {
 
 import { auth } from '@/app/(auth)/auth';
 import { myProvider } from '@/lib/ai/models';
-import { systemPrompt } from '@/lib/ai/prompts';
+import { systemPrompt, TherapistPrompt, MarilynMonroePrompt, DrillSergeantPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
@@ -29,6 +29,18 @@ import { getWeather } from '@/lib/ai/tools/get-weather';
 
 export const maxDuration = 60;
 
+function isDoctorMessage(message: Message): boolean {
+  return message.content.startsWith('Doctor');
+}
+
+function isMarilynMonroeMessage(message: Message): boolean {
+  return message.content.startsWith('Marilyn');
+}
+
+function isDrillSergeantMessage(message: Message): boolean {
+  return message.content.startsWith('Sergeant');
+}
+
 export async function POST(request: Request) {
   const {
     id,
@@ -44,6 +56,7 @@ export async function POST(request: Request) {
   }
 
   const userMessage = getMostRecentUserMessage(messages);
+  console.log('userMessage: ', userMessage);
 
   if (!userMessage) {
     return new Response('No user message found', { status: 400 });
@@ -60,11 +73,19 @@ export async function POST(request: Request) {
     messages: [{ ...userMessage, createdAt: new Date(), chatId: id }],
   });
 
+  const prompt = isDoctorMessage(userMessage)
+    ? systemPrompt({ selectedChatModel, personality: TherapistPrompt })
+    : isMarilynMonroeMessage(userMessage)
+      ? systemPrompt({ selectedChatModel, personality: MarilynMonroePrompt })
+      : isDrillSergeantMessage(userMessage)
+        ? systemPrompt({ selectedChatModel, personality: DrillSergeantPrompt })
+        : systemPrompt({ selectedChatModel });
+
   return createDataStreamResponse({
     execute: (dataStream) => {
       const result = streamText({
         model: myProvider.languageModel(selectedChatModel),
-        system: systemPrompt({ selectedChatModel }),
+        system: prompt,
         messages,
         maxSteps: 5,
         experimental_activeTools:
