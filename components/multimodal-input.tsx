@@ -6,6 +6,11 @@ import type {
   CreateMessage,
   Message,
 } from 'ai';
+
+import type { 
+  DocumentAttachment
+} from '@/lib/types';
+
 import type React from 'react';
 import {
   useRef,
@@ -22,6 +27,7 @@ import { PreviewAttachment } from './preview-attachment';
 import { SuggestedActions } from './suggested-actions';
 import equal from 'fast-deep-equal';
 import { AttachmentsInput } from './attachments-input';
+import { DocumentsInput } from './documents-input';
 import { cx } from 'class-variance-authority';
 import { PromptInput } from './prompt-input';
 
@@ -64,6 +70,8 @@ function PureMultimodalInput({
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const { height } = useWindowSize();
   const [storedHeight, setStoredHeight] = useLocalStorage('input-height', 100);
+  const [documents, setDocuments] = useState<Array<DocumentAttachment>>([]);
+  const [documentUploadQueue, setDocumentUploadQueue] = useState<Array<string>>([]);
 
   useEffect(() => {
     if (textAreaRef.current) {
@@ -79,17 +87,29 @@ function PureMultimodalInput({
     <div className="relative w-full flex flex-col gap-4">
       {messages.length === 0 &&
         attachments.length === 0 &&
-        uploadQueue.length === 0 && (
+        uploadQueue.length === 0 &&
+        documentUploadQueue.length === 0 && (
           <SuggestedActions append={append} chatId={chatId} />
         )}
 
-      {(attachments.length > 0 || uploadQueue.length > 0) && (
+      {(attachments.length > 0 || uploadQueue.length > 0 || documentUploadQueue.length > 0) && (
         <div className="flex flex-row gap-2 overflow-x-scroll items-end">
           {attachments.map((attachment) => (
             <PreviewAttachment key={attachment.url} attachment={attachment} />
           ))}
 
           {uploadQueue.map((filename) => (
+            <PreviewAttachment
+              key={filename}
+              attachment={{
+                url: '',
+                name: filename,
+                contentType: '',
+              }}
+            />
+          ))}
+
+          {documentUploadQueue.map((filename) => (
             <PreviewAttachment
               key={filename}
               attachment={{
@@ -107,12 +127,18 @@ function PureMultimodalInput({
 
         <div className="relative flex-grow">
 
-          <div className="absolute left-2 bottom-[10px] z-10">
+          <div className="absolute left-2 bottom-[10px] z-10 flex flex-row gap-1">
             <AttachmentsInput
               attachments={attachments}
               setAttachmentsAction={setAttachments}
               uploadQueue={uploadQueue}
               setUploadQueueAction={setUploadQueue}
+              isLoading={isLoading}
+              className={cx('flex-shrink-0', className)}
+            />
+            <DocumentsInput
+              setDocumentsAction={setDocuments}
+              setUploadQueueAction={setDocumentUploadQueue}
               isLoading={isLoading}
               className={cx('flex-shrink-0', className)}
             />
@@ -122,10 +148,11 @@ function PureMultimodalInput({
             input={input}
             setInput={setInput}
             isLoading={isLoading}
-            submitFormAction={submitForm}
+            submitFormAction={handleSubmit}
             stopAction={stop}
             setMessages={setMessages}
             attachments={attachments}
+            documents={documents}
             className={className}
             textAreaRef={textAreaRef}
           />

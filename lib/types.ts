@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 
 export const LocationQuerySchema = z.object({
@@ -172,4 +173,13 @@ export interface WeatherAtLocation {
 		wind_speed: number[];
 		wind_deg: number[];
 	};
+}
+
+export interface DocumentAttachment {
+	id: string;
+	content: string | null;
+	title: string;
+	kind: 'code' | 'text' | 'image' | 'sheet' | 'widget';
+	createdAt: Date;
+	userId: string;
 }

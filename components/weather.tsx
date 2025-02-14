@@ -64,7 +64,7 @@ const Weather: React.FC<{weatherAtLocation?: WeatherAtLocation }> = ({weatherAtL
   return (
     <div
       className={cx(
-        'flex flex-col gap-4 rounded-2xl p-4 skeleton-bg max-w-[500px]',
+        'flex flex-col gap-4 rounded-2xl p-4 skeleton-bg max-w-[700px]',
         {
           'bg-blue-400': isDay,
         },
@@ -135,17 +135,21 @@ const createParentComponent = (weatherAtLocation?: WeatherAtLocation) =>  {
 } 
 
 
-export type DailyWeather = { date: string; sunrise: string; sunset: string; temperatures: DailyWeatherRecord; min: number; max: number; pressure: number; humidity: number; clouds: number; wind_speed: number; wind_deg: number }
+export type DailyWeather = { date: string; sunrise: string; sunset: string; temperatures: DailyWeatherRecord; min: string; max: string; pressure: number; humidity: number; clouds: number; wind_speed: number; wind_deg: number }
 
 // Example drawer component with DataTable
 const DrawerContent: React.FC<{ isDrawerOpen: boolean, dailyData: DailyWeather[]}> = ({ isDrawerOpen, dailyData }) => (
   <>
-  <div className="p-6">
+  <div className="p-4">
     <h4 className="font-semibold mb-4">Daily Weather</h4>
     <DataTable columns={columns} data={dailyData} />
   </div>
   </>
 )
+
+function formatTemperature(temperature: number) {
+  return `${n(temperature)}°C`
+}
 
 const formatDatailiesData = (weatherAtLocation: WeatherAtLocation): DailyWeather[] =>  {
   moment.locale('en_US');
@@ -158,8 +162,8 @@ const formatDatailiesData = (weatherAtLocation: WeatherAtLocation): DailyWeather
       sunrise: moment(daily.sunrise[d]).format('h:mm A'),
       sunset: moment(daily.sunset[d]).format('h:mm A'),
       temperatures: daily.temperatures[d],
-      min: daily.temperatures[d].min,
-      max: daily.temperatures[d].max,
+      min: formatTemperature(daily.temperatures[d].min),
+      max: formatTemperature(daily.temperatures[d].max),
       pressure: daily.pressure[d],
       humidity: daily.humidity[d],
       clouds: daily.clouds[d],

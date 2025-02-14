@@ -4,6 +4,7 @@ import type { Message, Attachment } from 'ai';
 import { cx } from 'class-variance-authority';
 import { SendButton } from './send-button';
 import { StopButton } from './stop-button';
+import type { DocumentAttachment } from "@/lib/types";
 
 interface PromptInputProps {
 	input: string;
@@ -14,6 +15,7 @@ interface PromptInputProps {
 	stopAction: () => void;
 	setMessages: Dispatch<SetStateAction<Message[]>>;
 	attachments: Attachment[];
+	documents: DocumentAttachment[];
 	className?: string;
 }
 
@@ -25,6 +27,7 @@ export const PromptInput = ({
 	stopAction,
 	setMessages,
 	attachments,
+	documents,
 	className,
 	textAreaRef,
 }: PromptInputProps) => {
@@ -48,17 +51,20 @@ export const PromptInput = ({
 					}
 				}}
 			/>
-			<div className="absolute right-2 bottom-[10px]">
+			<div className="absolute bottom-4 right-4">
 				{isLoading ? (
-					<StopButton stop={stopAction} setMessages={setMessages} />
+					<StopButton 
+						stop={stopAction}
+						setMessages={setMessages}
+					/>
 				) : (
 					<SendButton
 						submitForm={submitFormAction}
 						input={input}
-						uploadQueue={attachments.map((a) => a.name ?? '')}
+						uploadQueue={[]}
 					/>
 				)}
 			</div>
 		</>
-	)
-}
+	);
+};
