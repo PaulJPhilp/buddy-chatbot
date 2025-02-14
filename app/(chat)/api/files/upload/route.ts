@@ -4,6 +4,16 @@ import { z } from 'zod';
 
 import { auth } from '@/app/(auth)/auth';
 
+const ALLOWED_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'application/pdf',
+  'text/plain',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+] as const;
+
 // Use Blob instead of File since File is not available in Node.js environment
 const FileSchema = z.object({
   file: z
@@ -11,9 +21,8 @@ const FileSchema = z.object({
     .refine((file) => file.size <= 5 * 1024 * 1024, {
       message: 'File size should be less than 5MB',
     })
-    // Update the file type based on the kind of files you want to accept
-    .refine((file) => ['image/jpeg', 'image/png'].includes(file.type), {
-      message: 'File type should be JPEG or PNG',
+    .refine((file) => ALLOWED_TYPES.includes(file.type as typeof ALLOWED_TYPES[number]), {
+      message: `File type should be one of: ${ALLOWED_TYPES.join(', ')}`,
     }),
 });
 

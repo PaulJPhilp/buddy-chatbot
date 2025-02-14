@@ -11,9 +11,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import type { User } from "@/data/user"
 
-export const columns: ColumnDef<User>[] = [
+export const columns: ColumnDef<any>[] = [
 	{
 		accessorKey: "name",
 		header: ({ column }) => {
