@@ -90,7 +90,8 @@ export const textBlock = new Block<'text', TextBlockMetadata>({
             onSaveContent={onSaveContent}
           />
 
-          {metadata &&
+          {/* biome-ignore lint/complexity/useOptionalChain: <explanation> */}
+{metadata &&
           metadata.suggestions &&
           metadata.suggestions.length > 0 ? (
             <div className="md:hidden h-dvh w-12 shrink-0" />

@@ -7,6 +7,7 @@ import useSWR, { useSWRConfig } from 'swr';
 
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
+import type { DocumentAttachment } from '@/lib/types';
 import { fetcher, generateUUID } from '@/lib/utils';
 
 import { Block } from './block';
@@ -150,6 +151,9 @@ export function ChatText({
   );
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+  const [documents, setDocuments] = useState<Array<DocumentAttachment>>([]);
+  const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
+  const [documentUploadQueue, setDocumentUploadQueue] = useState<Array<string>>([]);
   const isBlockVisible = useBlockSelector((state) => state.isVisible);
 
   return (
@@ -187,6 +191,12 @@ export function ChatText({
               setAttachments={setAttachments}
               messages={messages}
               setMessages={setMessages}
+              documents={documents}
+              setDocuments={setDocuments}
+              uploadQueue={uploadQueue}
+              setUploadQueue={setUploadQueue}
+              documentUploadQueue={documentUploadQueue}
+              setDocumentUploadQueue={setDocumentUploadQueue}
               append={append}
             />
           )}

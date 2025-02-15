@@ -10,29 +10,29 @@ import {
 } from 'react';
 import type { BlockKind, UIBlock } from './block';
 import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from './icons';
-import { cn, fetcher } from '@/lib/utils';
-import type { Document } from '@/lib/db/schema';
+import { cn, fetcher } from '../lib/utils';
+import type { Document } from '../lib/db/schema';
 import { InlineDocumentSkeleton } from './document-skeleton';
 import useSWR from 'swr';
 import { Editor } from './editor';
 import { DocumentToolCall, DocumentToolResult } from './document';
 import { CodeEditor } from './code-editor';
-import { useBlock } from '@/hooks/use-block';
+import { useBlock } from '../hooks/use-block';
 import equal from 'fast-deep-equal';
 import { SpreadsheetEditor } from './sheet-editor';
 import { ImageEditor } from './image-editor';
 
-interface DocumentPreviewProps {
+interface DisplayDocumentProps {
   isReadonly: boolean;
   result?: any;
   args?: any;
 }
 
-export function DocumentPreview({
+export function DisplayDocument({
   isReadonly,
   result,
   args,
-}: DocumentPreviewProps) {
+}: DisplayDocumentProps) {
   const { block, setBlock } = useBlock();
 
   const { data: documents, isLoading: isDocumentsFetching } = useSWR<

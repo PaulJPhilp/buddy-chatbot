@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
-import { DocumentPreview } from './document-preview';
+import { DisplayDocument } from './display-document';
 import { MessageReasoning } from './message-reasoning';
 
 const PurePreviewMessage = ({
@@ -167,7 +167,7 @@ const PurePreviewMessage = ({
         return <ExtendableWeather weatherAtLocation={result} />;
       case 'createDocument':
         return (
-          <DocumentPreview
+          <DisplayDocument
             isReadonly={isReadonly}
             result={result}
           />
@@ -207,7 +207,7 @@ const PurePreviewMessage = ({
         return <ExtendableWeather />;
       case 'createDocument':
         return (
-          <DocumentPreview
+          <DisplayDocument
             isReadonly={isReadonly}
             args={args}
           />
