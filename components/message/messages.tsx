@@ -1,19 +1,18 @@
 import type { Vote } from '@/lib/db/schema';
-import type { ChatRequestOptions, Message } from 'ai';
+import type { ChatRequestOptions } from 'ai';
 import equal from 'fast-deep-equal';
 import { memo } from 'react';
 import { Overview } from './overview';
-import { useScrollToBottom } from './use-scroll-to-bottom';
 import { PreviewMessage, ThinkingMessage } from './message';
+import type { EnhancedMessage, SetMessagesFunction } from '@/lib/types';
+import { useScrollToBottom } from './use-scroll-to-bottom';
 
 interface MessagesProps {
   chatId: string;
   isLoading: boolean;
   votes: Array<Vote> | undefined;
-  messages: Array<Message>;
-  setMessages: (
-    messages: Message[] | ((messages: Message[]) => Message[]),
-  ) => void;
+  messages: Array<EnhancedMessage>;
+  setMessages: SetMessagesFunction;
   reload: (
     chatRequestOptions?: ChatRequestOptions,
   ) => Promise<string | null | undefined>;
@@ -21,6 +20,41 @@ interface MessagesProps {
   isBlockVisible: boolean;
 }
 
+/**
+ * A container component that manages and displays the chat message thread.
+ * 
+ * @explanation
+ * This component orchestrates the chat message display system, providing:
+ * 
+ * 1. Message Management:
+ *    - Efficient message rendering
+ *    - Scroll position handling
+ *    - Message grouping and ordering
+ * 
+ * 2. Visual States:
+ *    - Loading indicators
+ *    - Empty state handling
+ *    - Block visibility transitions
+ * 
+ * 3. Performance Optimizations:
+ *    - Virtualized scrolling
+ *    - Memoized message components
+ *    - Efficient re-renders
+ * 
+ * 4. Interaction Handling:
+ *    - Scroll-to-bottom behavior
+ *    - New message indicators
+ *    - Block state coordination
+ * 
+ * The component maintains a smooth chat experience by efficiently managing
+ * message updates, scroll positions, and visual feedback while coordinating
+ * with the block system for expanded content views. It uses memoization and
+ * virtualization to handle large message threads without performance
+ * degradation.
+ * 
+ * @param props - Configuration for the message container
+ * @returns A scrollable container of chat messages with proper ordering
+ */
 function PureMessages({
   chatId,
   isLoading,
@@ -29,6 +63,7 @@ function PureMessages({
   setMessages,
   reload,
   isReadonly,
+  isBlockVisible,
 }: MessagesProps) {
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();

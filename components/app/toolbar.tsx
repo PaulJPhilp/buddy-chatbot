@@ -25,7 +25,7 @@ import {
 import { useOnClickOutside } from 'usehooks-ts';
 
 import type { UseChatHelpers } from 'ai/react';
-import type { BlockKind } from '@/components/block/block';
+import type { BlockKind } from '@/lib/types';
 import type { BlockToolbarItem } from '@/components/block/create-block';
 import {
   ArrowUpIcon,

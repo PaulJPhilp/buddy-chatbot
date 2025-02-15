@@ -22,6 +22,13 @@ export const buildContentFromDocument = (document: Node) => {
   return defaultMarkdownSerializer.serialize(document);
 };
 
+  /**
+   * Create an array of decorations for a given set of suggestions and view.
+   *
+   * @param {Array<UISuggestion>} suggestions - The suggestions to create decorations for.
+   * @param {EditorView} view - The editor view to create the decorations for.
+   * @returns {DecorationSet} - The decoration set for the given suggestions and view.
+   */
 export const createDecorations = (
   suggestions: Array<UISuggestion>,
   view: EditorView,

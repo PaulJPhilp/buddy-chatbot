@@ -18,7 +18,29 @@ import {
 import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-export function AppSidebar({ user }: { user: User | undefined }) {
+interface AppSidebarProps {
+  user: User | undefined;
+}
+
+/**
+ * Renders the application sidebar with navigation and user-specific controls.
+ * 
+ * @explanation
+ * The AppSidebar serves as the main navigation component for the application.
+ * It provides:
+ * 1. Application branding with the BuddyChatbot title
+ * 2. User-specific controls and authentication state display
+ * 3. Mobile responsiveness with a collapsible design
+ * 4. Integration with the router for navigation handling
+ * 
+ * The component adapts its display based on the user's authentication status,
+ * showing appropriate controls and options for both logged-in and anonymous users.
+ * 
+ * @param {AppSidebarProps} props - The component props
+ * @param {User | undefined} props.user - The current user object, undefined if not logged in
+ * @returns {JSX.Element} The rendered sidebar component
+ */
+export function AppSidebar({ user }: AppSidebarProps) {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
 
@@ -35,7 +57,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               className="flex flex-row gap-3 items-center"
             >
               <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
-                BuddyChatbot
+                <h4>BuddyChatbot</h4>
               </span>
             </Link>
             <Tooltip>

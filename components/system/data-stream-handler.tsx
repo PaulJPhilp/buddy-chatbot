@@ -2,7 +2,8 @@
 
 import { useChat } from 'ai/react';
 import { useEffect, useRef } from 'react';
-import { blockDefinitions, type BlockKind } from '@/components/block/block';
+import { blockDefinitions } from '@/components/block/block';
+import type { BlockKind } from '@/lib/types';
 import type { Suggestion } from '@/lib/db/schema';
 import { initialBlockData, useBlock } from '@/hooks/use-block';
 

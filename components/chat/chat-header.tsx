@@ -11,17 +11,51 @@ import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { type VisibilityType, VisibilitySelector } from '@/components/app/visibility-selector';
 
+/**
+ * Configuration options for the chat header display
+ */
+interface ChatHeaderProps {
+  chatId: string;
+  selectedModelId: string;
+  selectedVisibilityType: VisibilityType;
+  isReadonly: boolean;
+}
+
+/**
+ * Header component for the chat interface with navigation and settings controls.
+ * 
+ * @explanation
+ * This component serves as the primary navigation and control panel for the chat,
+ * implementing several key features:
+ * 
+ * 1. Navigation Controls:
+ *    - Back button for chat navigation
+ *    - Sidebar toggle for workspace management
+ *    - Route handling for chat transitions
+ * 
+ * 2. Settings Management:
+ *    - Model selection display
+ *    - Visibility control
+ *    - Read-only state indication
+ * 
+ * 3. User Interface:
+ *    - Responsive layout adaptation
+ *    - Tooltip-enhanced controls
+ *    - Accessibility considerations
+ * 
+ * The header maintains consistent positioning and provides quick access to
+ * frequently used chat controls while adapting to different screen sizes
+ * and interaction modes.
+ * 
+ * @param props - Properties for configuring the chat header
+ * @returns A header component with navigation and control elements
+ */
 function PureChatHeader({
   chatId,
   selectedModelId,
   selectedVisibilityType,
   isReadonly,
-}: {
-  chatId: string;
-  selectedModelId: string;
-  selectedVisibilityType: VisibilityType;
-  isReadonly: boolean;
-}) {
+}: ChatHeaderProps) {
   const router = useRouter();
   const { open } = useSidebar();
 

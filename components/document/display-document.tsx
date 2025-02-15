@@ -1,6 +1,7 @@
 'use client';
 
-import type { BlockKind, UIBlock } from '@/components/block/block';
+import type { BlockKind } from '@/lib/types';
+import type { UIBlock } from '@/components/block/block';
 import { ImageEditor } from '@/components/editors/image-editor';
 import { SpreadsheetEditor } from '@/components/editors/sheet-editor';
 import equal from 'fast-deep-equal';
@@ -13,21 +14,56 @@ import {
   type MouseEvent,
 } from 'react';
 import useSWR from 'swr';
-import { useBlock } from '../../hooks/use-block';
-import type { Document } from '../../lib/db/schema';
-import { cn, fetcher } from '../../lib/utils';
-import { CodeEditor } from '../editors/code-editor';
-import { Editor } from '../editors/editor';
-import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from '../ui/icons';
-import { DocumentToolCall, DocumentToolResult } from './document';
+import { useBlock } from '@/hooks/use-block';
+import type { Document } from '@/lib/db/schema';
+import { cn, fetcher } from '@/lib/utils';
+import { CodeEditor } from '@/components/editors/code-editor';
+import { Editor } from '@/components/editors/editor';
+import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from '@/components/ui/icons';
+import { DocumentToolCall, DocumentToolResult } from '@/components/document/document-tool';
 import { InlineDocumentSkeleton } from './document-skeleton';
 
 interface DisplayDocumentProps {
   isReadonly: boolean;
-  result?: any;
+  result?: { id: string; title: string; kind: BlockKind };
   args?: any;
 }
 
+/**
+ * A versatile component for rendering document states and operations in the UI.
+ * 
+ * @explanation
+ * This component acts as a smart wrapper for document-related displays,
+ * providing:
+ * 
+ * 1. Conditional Rendering:
+ *    - Handles both completed results and in-progress operations
+ *    - Switches between DocumentToolResult and DocumentToolCall
+ *    - Manages empty/loading states gracefully
+ * 
+ * 2. State Coordination:
+ *    - Synchronizes document action types
+ *    - Manages result data presentation
+ *    - Handles readonly mode consistently
+ * 
+ * 3. Accessibility Features:
+ *    - Clear visual hierarchy
+ *    - Consistent interaction patterns
+ *    - State-appropriate feedback
+ * 
+ * 4. Error Handling:
+ *    - Graceful fallbacks for missing data
+ *    - Type-safe property usage
+ *    - Proper null state management
+ * 
+ * The component intelligently chooses between different display modes based on
+ * the current document state, ensuring a seamless transition between
+ * in-progress and completed operations while maintaining proper access
+ * control.
+ * 
+ * @param props - Configuration options for document display
+ * @returns An appropriate document tool component based on current state
+ */
 export function DisplayDocument({
   isReadonly,
   result,
@@ -81,7 +117,7 @@ export function DisplayDocument({
   }
 
   if (isDocumentsFetching) {
-    return <LoadingSkeleton blockKind={result.kind ?? args.kind} />;
+    return <LoadingSkeleton blockKind={result?.kind ?? args.kind} />;
   }
 
   const document: Document = previewDocument ?? (
@@ -121,7 +157,7 @@ export function DisplayDocument({
 
 const LoadingSkeleton = ({ blockKind }: { blockKind: BlockKind }) => (
   <div className="w-full">
-    <div className="p-4 border rounded-t-2xl flex flex-row gap-2 items-center justify-between dark:bg-muted h-[57px] dark:border-zinc-700 border-b-0">
+    <div className="p-4 border rounded-t-2xl flex flex-row gap-2 items-center justify-between dark:bg-muted border-b-0 dark:border-zinc-700">
       <div className="flex flex-row items-center gap-3">
         <div className="text-muted-foreground">
           <div className="animate-pulse rounded-md size-4 bg-muted-foreground/20" />

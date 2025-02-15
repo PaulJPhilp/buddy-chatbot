@@ -41,14 +41,61 @@ const visibilities: Array<{
     },
   ];
 
+/**
+ * Props interface for the VisibilitySelector component.
+ * 
+ * @explanation
+ * Extends Button props while adding chat-specific visibility properties.
+ * This enables the component to maintain standard button functionality
+ * while adding chat visibility control capabilities.
+ */
+interface VisibilitySelectorProps extends React.ComponentProps<typeof Button> {
+  chatId: string;
+  selectedVisibilityType: VisibilityType;
+}
+
+/**
+ * A dropdown component for controlling chat visibility settings.
+ * 
+ * @explanation
+ * The VisibilitySelector provides an intuitive interface for managing chat
+ * visibility permissions. It implements:
+ * 
+ * 1. Visibility States:
+ *    - Private: Limited to owner access
+ *    - Public: Accessible via link sharing
+ *    - Visual indicators for current state
+ * 
+ * 2. Interactive UI:
+ *    - Dropdown menu for state selection
+ *    - Descriptive labels and icons
+ *    - Responsive design (hidden on mobile)
+ * 
+ * 3. State Management:
+ *    - Memoized visibility selection
+ *    - Controlled dropdown state
+ *    - Immediate feedback on changes
+ * 
+ * 4. Accessibility:
+ *    - Semantic dropdown structure
+ *    - Keyboard navigation support
+ *    - Clear visual feedback
+ * 
+ * The component uses a button-triggered dropdown pattern with rich visual
+ * feedback and maintains a controlled state through the useChatVisibility hook.
+ * 
+ * @param {VisibilitySelectorProps} props - The component props
+ * @param {string} props.chatId - Unique identifier for the chat
+ * @param {VisibilityType} props.selectedVisibilityType - Current visibility state
+ * @param {string} [props.className] - Optional CSS class names
+ * @returns {JSX.Element} The rendered visibility selector
+ */
 export function VisibilitySelector({
   chatId,
   className,
   selectedVisibilityType,
-}: {
-  chatId: string;
-  selectedVisibilityType: VisibilityType;
-} & React.ComponentProps<typeof Button>) {
+  ...props
+}: VisibilitySelectorProps) {
   const [open, setOpen] = useState(false);
 
   const { visibilityType, setVisibilityType } = useChatVisibility({

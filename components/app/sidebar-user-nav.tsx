@@ -18,11 +18,61 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
-export function SidebarUserNav({ user }: { user: User }) {
+import type { ComponentProps } from 'react';
+
+/**
+ * Props interface for the SidebarUserNav component.
+ * 
+ * @explanation
+ * This interface extends the base SidebarMenu component props while requiring
+ * a User object for authenticated user information. It enables the component
+ * to maintain all standard sidebar menu functionality while adding user-specific
+ * features.
+ */
+interface SidebarUserNavProps extends ComponentProps<typeof SidebarMenu> {
+  user: User;
+}
+
+/**
+ * User navigation component for the sidebar with theme and authentication controls.
+ * 
+ * @explanation
+ * The SidebarUserNav component provides user-specific controls and information
+ * in the sidebar. It implements:
+ * 1. User Profile Display:
+ *    - Avatar image generated from user's email
+ *    - Truncated email display
+ *    - Responsive button layout
+ * 
+ * 2. Theme Management:
+ *    - Light/dark mode toggle
+ *    - Persistent theme state
+ *    - Visual feedback on theme change
+ * 
+ * 3. Authentication Controls:
+ *    - Sign out functionality
+ *    - Redirect handling post-signout
+ *    - Session management
+ * 
+ * 4. Interactive Elements:
+ *    - Dropdown menu for actions
+ *    - Hover and active states
+ *    - Proper keyboard navigation
+ * 
+ * The component uses a dropdown pattern for compact presentation while
+ * maintaining accessibility and providing clear visual feedback for all
+ * user interactions.
+ * 
+ * @param {SidebarUserNavProps} props - The component props
+ * @param {User} props.user - The authenticated user object
+ * @param {...ComponentProps<typeof SidebarMenu>} props - Additional sidebar menu props
+ * @returns {JSX.Element} The rendered user navigation component
+ */
+export function SidebarUserNav({ user, ...props }: SidebarUserNavProps) {
   const { setTheme, theme } = useTheme();
 
   return (
-    <SidebarMenu>
+    <SidebarMenu {...props}>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

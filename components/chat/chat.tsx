@@ -7,7 +7,7 @@ import useSWR, { useSWRConfig } from 'swr';
 
 import { ChatHeader } from '@/components/chat/chat-header';
 import type { Vote } from '@/lib/db/schema';
-import type { DocumentAttachment } from '@/lib/types';
+import type { DocumentAttachment, EnhancedMessage, SetMessagesFunction } from '@/lib/types';
 import { fetcher, generateUUID } from '@/lib/utils';
 
 import type { VisibilityType } from '@/components/app/visibility-selector';
@@ -19,19 +19,63 @@ import { toast } from 'sonner';
 
 import Image from 'next/image';
 
+/**
+ * Props for configuring chat behavior and initial state
+ */
+interface ChatProps {
+  id: string;
+  initialMessages: Array<Message>;
+  selectedChatModel: string;
+  selectedVisibilityType: VisibilityType;
+  isReadonly: boolean;
+}
+
+/**
+ * A sophisticated chat interface that handles AI-powered conversations.
+ * 
+ * @explanation
+ * This component implements a full-featured chat system with:
+ * 
+ * 1. Message Management:
+ *    - Real-time message streaming
+ *    - History preservation
+ *    - Multi-modal content support (text, images)
+ *    - Message retry and regeneration
+ * 
+ * 2. AI Integration:
+ *    - Multiple model support
+ *    - Context-aware responses
+ *    - Dynamic model switching
+ *    - Streaming response handling
+ * 
+ * 3. UI/UX Features:
+ *    - Progressive loading
+ *    - Typing indicators
+ *    - Error handling and recovery
+ *    - Responsive design
+ * 
+ * 4. Privacy & Control:
+ *    - Visibility settings
+ *    - Read-only mode
+ *    - Message persistence
+ *    - Access control
+ * 
+ * The component maintains conversation state, handles message
+ * streaming, and provides real-time feedback during AI responses.
+ * It supports both text and image-based models, automatically
+ * detecting and adapting to the appropriate mode based on the
+ * message content.
+ * 
+ * @param props - Configuration options for the chat interface
+ * @returns A fully functional chat interface component
+ */
 export function Chat({
   id,
   initialMessages,
   selectedChatModel,
   selectedVisibilityType,
   isReadonly,
-}: {
-  id: string;
-  initialMessages: Array<Message>;
-  selectedChatModel: string;
-  selectedVisibilityType: VisibilityType;
-  isReadonly: boolean;
-}) {
+}: ChatProps) {
   let usingImageModel = false;
   initialMessages.forEach((message) => {
     if (message.toolInvocations) {
@@ -47,7 +91,15 @@ export function Chat({
     return <ChatImage />;
   }
 
-  return <ChatText id={id} initialMessages={initialMessages} selectedChatModel={selectedChatModel} selectedVisibilityType={selectedVisibilityType} isReadonly={isReadonly} />;
+  return (
+    <ChatText
+      id={id}
+      initialMessages={initialMessages}
+      selectedChatModel={selectedChatModel}
+      selectedVisibilityType={selectedVisibilityType}
+      isReadonly={isReadonly}
+    />
+  );
 }
 
 export function ChatImage() {
@@ -57,12 +109,12 @@ export function ChatImage() {
     <>
       <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
         <div className="space-y-4">
-          {messages.map(m => (
+          {messages.map((m) => (
             <div key={m.id} className="whitespace-pre-wrap">
               <div key={m.id}>
                 <div className="font-bold">{m.role}</div>
                 {m.toolInvocations ? (
-                  m.toolInvocations.map(ti =>
+                  m.toolInvocations.map((ti) =>
                     ti.toolName === 'generateImage' ? (
                       ti.state === 'result' ? (
                         <Image
@@ -77,7 +129,7 @@ export function ChatImage() {
                           Generating image...
                         </div>
                       )
-                    ) : null,
+                    ) : null
                   )
                 ) : (
                   <p>{m.content}</p>
@@ -113,12 +165,11 @@ export function ChatText({
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
 }) {
-
   const { mutate } = useSWRConfig();
 
   const {
-    messages,
-    setMessages,
+    messages: rawMessages,
+    setMessages: setRawMessages,
     handleSubmit,
     input,
     setInput,
@@ -140,6 +191,23 @@ export function ChatText({
       toast.error(`An error occured, please try again!: ${error ? error.message : error}`);
     },
   });
+
+  // Convert Message[] to EnhancedMessage[] for display purposes
+  const messages = rawMessages.map((msg) => ({
+    ...msg,
+    tools: (msg as any).tools || [],
+  })) as EnhancedMessage[];
+
+  // Pass through setMessages without conversion since tools is now optional
+  const setMessages: SetMessagesFunction = (
+    messagesOrUpdater: Message[] | ((prevMessages: Message[]) => Message[])
+  ) => {
+    if (typeof messagesOrUpdater === 'function') {
+      setRawMessages((prev) => messagesOrUpdater(prev));
+    } else {
+      setRawMessages(messagesOrUpdater);
+    }
+  };
 
   const { data: votes } = useSWR<Array<Vote>>(
     `/api/vote?chatId=${id}`,
@@ -172,7 +240,6 @@ export function ChatText({
           isReadonly={isReadonly}
           isBlockVisible={isBlockVisible}
         />
-
 
         <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
           {!isReadonly && (

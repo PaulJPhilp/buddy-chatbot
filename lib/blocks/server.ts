@@ -2,7 +2,7 @@ import { codeDocumentHandler } from '@/blocks/code/server';
 import { imageDocumentHandler } from '@/blocks/image/server';
 import { sheetDocumentHandler } from '@/blocks/sheet/server';
 import { textDocumentHandler } from '@/blocks/text/server';
-import type { BlockKind } from '@/components/block/block';
+import type { BlockKind } from '@/lib/types';
 import type { DataStreamWriter } from 'ai';
 import type { Document } from '../db/schema';
 import { saveDocument } from '../db/queries';

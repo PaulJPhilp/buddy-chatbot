@@ -1,22 +1,18 @@
 'use client';
 
-import type { ChatRequestOptions, Message } from 'ai';
+import type { Message } from 'ai';
 import { Button } from '@/components/ui/button';
-import type { Dispatch, SetStateAction} from 'react';
-import { useEffect, useRef, useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
+import type { MessageMode, EnhancedMessage, SetMessagesFunction } from '@/lib/types';
+import type { Dispatch, SetStateAction } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { deleteTrailingMessages } from '@/app/(chat)/actions';
-
 
 export type MessageEditorProps = {
   message: Message;
-  setModeAction: Dispatch<SetStateAction<'view' | 'edit'>>;
-  setMessagesAction: (
-    messages: Message[] | ((messages: Message[]) => Message[]),
-  ) => void;
-  reloadAction: (
-    chatRequestOptions?: ChatRequestOptions,
-  ) => Promise<string | null | undefined>;
+  setModeAction: Dispatch<SetStateAction<MessageMode>>;
+  setMessagesAction: SetMessagesFunction;
+  reloadAction: () => void;
 };
 
 export function MessageEditor({
@@ -78,16 +74,16 @@ export function MessageEditor({
               id: message.id,
             });
 
-            setMessagesAction((messages) => {
+            setMessagesAction((messages: EnhancedMessage[]) => {
               const index = messages.findIndex((m) => m.id === message.id);
 
               if (index !== -1) {
-                const updatedMessage = {
-                  ...message,
+                const updatedMessages = [...messages];
+                updatedMessages[index] = {
+                  ...messages[index],
                   content: draftContent,
                 };
-
-                return [...messages.slice(0, index), updatedMessage];
+                return updatedMessages;
               }
 
               return messages;

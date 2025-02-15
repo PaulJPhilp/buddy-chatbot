@@ -4,7 +4,7 @@ import type {
   CreateMessage,
   Message,
 } from 'ai';
-import { formatDistance } from 'date-fns';
+
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   type Dispatch,
@@ -18,11 +18,6 @@ import useSWR, { useSWRConfig } from 'swr';
 import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
 import type { Document, Vote } from '@/lib/db/schema';
 import { fetcher } from '@/lib/utils';
-import { MultimodalInput } from '@/components/prompter/multimodal-input';
-import { Toolbar } from '@/components/app/toolbar';
-import { VersionFooter } from '@/components/app/version-footer';
-import { BlockActions } from './block-actions';
-import { BlockCloseButton } from './block-close-button';
 import { BlockMessages } from './block-messages';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useBlock } from '@/hooks/use-block';
@@ -32,10 +27,11 @@ import { sheetBlock } from '@/blocks/sheet/client';
 import { textBlock } from '@/blocks/text/client';
 import { widgetBlock } from '@/blocks/widget/client';
 import equal from 'fast-deep-equal';
-import type { DocumentAttachment } from '@/lib/types';
+import type { DocumentAttachment, BlockKind } from '@/lib/types';
+import { DocumentPanel } from './document-panel';
+import { MultimodalInput } from '../prompter/multimodal-input';
 
 export const blockDefinitions = [textBlock, codeBlock, imageBlock, sheetBlock, widgetBlock];
-export type BlockKind = (typeof blockDefinitions)[number]['kind'];
 
 export interface UIBlock {
   title: string;
@@ -94,6 +90,36 @@ export const WidgetBlock = function WidgetBlock(props: UIBlockProps) {
   )
 }
 
+/**
+ * Props interface for the Block component.
+ * 
+ * @explanation
+ * This comprehensive interface defines the contract for a Block component,
+ * which serves as a container for chat interactions, document handling,
+ * and message management. Each prop group serves a specific purpose:
+ * 
+ * 1. Chat State:
+ *    - chatId: Unique identifier for the chat session
+ *    - input/setInput: Current input text and its setter
+ *    - isLoading: Loading state indicator
+ *    - isReadonly: Read-only mode flag
+ * 
+ * 2. Message Management:
+ *    - messages/setMessages: Chat message array and setter
+ *    - append: Function to add new messages
+ *    - reload: Function to refresh messages
+ *    - votes: User feedback on messages
+ * 
+ * 3. Attachment Handling:
+ *    - attachments/setAttachments: File attachments and setter
+ *    - uploadQueue/setUploadQueue: Pending upload management
+ *    - documentUploadQueue/setDocumentUploadQueue: Document queue management
+ * 
+ * 4. Interaction Control:
+ *    - handleSubmit: Form submission handler
+ *    - stop: Cancel ongoing operations
+ *    - setDocuments: Document state management
+ */
 interface BlockProps {
   chatId: string
   input: string
@@ -126,6 +152,44 @@ interface BlockProps {
   setDocumentUploadQueue: Dispatch<SetStateAction<Array<string>>>
 }
 
+/**
+ * A complex chat block component that manages messages, attachments, and interactions.
+ * 
+ * @explanation
+ * The Block component serves as a container for chat-based interactions,
+ * providing rich functionality for message handling, file attachments,
+ * and user interactions. It implements:
+ * 
+ * 1. Message Management:
+ *    - Real-time message streaming
+ *    - Message history display
+ *    - Vote and feedback handling
+ *    - Message reload capabilities
+ * 
+ * 2. File Handling:
+ *    - Multiple attachment types
+ *    - Upload queue management
+ *    - Document processing
+ *    - Progress tracking
+ * 
+ * 3. UI/UX Features:
+ *    - Loading states
+ *    - Read-only mode
+ *    - Input control
+ *    - Responsive layout
+ * 
+ * 4. Performance Optimization:
+ *    - Memoized rendering
+ *    - Efficient prop comparison
+ *    - Controlled re-renders
+ * 
+ * The component uses advanced patterns like memo and custom equality
+ * checks to maintain performance while handling complex state and
+ * interactions.
+ * 
+ * @param {BlockProps} props - The component props
+ * @returns {JSX.Element} The rendered block component
+ */
 function PureBlock({
   chatId,
   input,
@@ -332,254 +396,139 @@ function PureBlock({
   }, [block.documentId, blockDefinition, setMetadata])
 
   return (
-    <AnimatePresence>
-      {block.isVisible && (
-        <motion.div
-          className="flex flex-row h-dvh w-dvw fixed top-0 left-0 z-50 bg-transparent"
-          initial={{ opacity: 1 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0, transition: { delay: 0.4 } }}
-        >
-          {!isMobile && (
-            <motion.div
-              className="fixed bg-background h-dvh"
-              initial={{
-                width: isSidebarOpen ? windowWidth - 256 : windowWidth,
-                right: 0,
-              }}
-              animate={{ width: windowWidth, right: 0 }}
-              exit={{
-                width: isSidebarOpen ? windowWidth - 256 : windowWidth,
-                right: 0,
-              }}
-            />
-          )}
-
-          {!isMobile && (
-            <motion.div
-              className="relative w-[400px] bg-muted dark:bg-background h-dvh shrink-0"
-              initial={{ opacity: 0, x: 10, scale: 1 }}
-              animate={{
-                opacity: 1,
-                x: 0,
-                scale: 1,
-                transition: {
-                  delay: 0.2,
-                  type: 'spring',
-                  stiffness: 200,
-                  damping: 30,
-                },
-              }}
-              exit={{
-                opacity: 0,
-                x: 0,
-                scale: 1,
-                transition: { duration: 0 },
-              }}
-            >
-              <AnimatePresence>
-                {!isCurrentVersion && (
-                  <motion.div
-                    className="left-0 absolute h-dvh w-[400px] top-0 bg-zinc-900/50 z-50"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                  />
-                )}
-              </AnimatePresence>
-
-              <div className="flex flex-col h-full justify-between items-center gap-4 border-2 border-blue-500 dark:border-zinc-700">
-                <BlockMessages
-                  chatId={chatId}
-                  isLoading={isLoading}
-                  votes={votes}
-                  messages={messages}
-                  setMessages={setMessages}
-                  reload={reload}
-                  isReadonly={isReadonly}
-                  blockStatus={block.status}
-                />
-
-                <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">
-                  <MultimodalInput
-                    chatId={chatId}
-                    input={input}
-                    setInput={setInput}
-                    handleSubmit={handleSubmit}
-                    isLoading={isLoading}
-                    stop={stop}
-                    attachments={attachments}
-                    setAttachments={setAttachments}
-                    messages={messages}
-                    setMessages={setMessages}
-                    documents={documents ?? []}
-                    setDocuments={setDocuments}
-                    uploadQueue={uploadQueue}
-                    setUploadQueue={setUploadQueue}
-                    documentUploadQueue={documentUploadQueue}
-                    setDocumentUploadQueue={setDocumentUploadQueue}
-                    append={append}
-                    className="bg-background dark:bg-muted"
-                  />
-                </form>
-              </div>
-            </motion.div>
-          )}
-
+    <>
+      {/* Animated block container with smooth mount/unmount transitions
+        Uses framer-motion for spring-based animations and drag interactions */}
+      <AnimatePresence>
+        {block.isVisible && (
           <motion.div
-            className="fixed dark:bg-muted bg-background h-dvh flex flex-col overflow-y-scroll md:border-l dark:border-zinc-700 border-zinc-200"
-            initial={
-              isMobile
-                ? {
-                  opacity: 1,
-                  x: block.boundingBox.left,
-                  y: block.boundingBox.top,
-                  height: block.boundingBox.height,
-                  width: block.boundingBox.width,
-                  borderRadius: 50,
-                }
-                : {
-                  opacity: 1,
-                  x: block.boundingBox.left,
-                  y: block.boundingBox.top,
-                  height: block.boundingBox.height,
-                  width: block.boundingBox.width,
-                  borderRadius: 50,
-                }
-            }
-            animate={
-              isMobile
-                ? {
+            className="flex flex-row h-dvh w-dvw fixed top-0 left-0 z-50 bg-transparent"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, transition: { delay: 0.4 } }}
+          >
+            {!isMobile && (
+              <motion.div
+                className="fixed bg-background h-dvh"
+                initial={{
+                  width: isSidebarOpen ? windowWidth - 256 : windowWidth,
+                  right: 0,
+                }}
+                animate={{ width: windowWidth, right: 0 }}
+                exit={{
+                  width: isSidebarOpen ? windowWidth - 256 : windowWidth,
+                  right: 0,
+                }}
+              />
+            )}
+
+            {!isMobile && (
+              <motion.div
+                className="relative w-[400px] bg-muted dark:bg-background h-dvh shrink-0"
+                initial={{ opacity: 0, x: 10, scale: 1 }}
+                animate={{
                   opacity: 1,
                   x: 0,
-                  y: 0,
-                  height: windowHeight,
-                  width: windowWidth ? windowWidth : 'calc(100dvw)',
-                  borderRadius: 0,
+                  scale: 1,
                   transition: {
-                    delay: 0,
+                    delay: 0.2,
                     type: 'spring',
                     stiffness: 200,
                     damping: 30,
-                    duration: 5000,
                   },
-                }
-                : {
-                  opacity: 1,
-                  x: 400,
-                  y: 0,
-                  height: windowHeight,
-                  width: windowWidth
-                    ? windowWidth - 400
-                    : 'calc(100dvw-400px)',
-                  borderRadius: 0,
-                  transition: {
-                    delay: 0,
-                    type: 'spring',
-                    stiffness: 200,
-                    damping: 30,
-                    duration: 5000,
-                  },
-                }
-            }
-            exit={{
-              opacity: 0,
-              scale: 0.5,
-              transition: {
-                delay: 0.1,
-                type: 'spring',
-                stiffness: 600,
-                damping: 30,
-              },
-            }}
-          >
-            <div className="p-2 flex flex-row justify-between items-start">
-              <div className="flex flex-row gap-4 items-start">
-                <BlockCloseButton />
-
-                <div className="flex flex-col">
-                  <div className="font-medium">{block.title}</div>
-
-                  {isContentDirty ? (
-                    <div className="text-sm text-muted-foreground">
-                      Saving changes...
-                    </div>
-                  ) : document ? (
-                    <div className="text-sm text-muted-foreground">
-                      {`Updated ${formatDistance(
-                        new Date(document.createdAt),
-                        new Date(),
-                        {
-                          addSuffix: true,
-                        },
-                      )}`}
-                    </div>
-                  ) : (
-                    <div className="w-32 h-3 mt-2 bg-muted-foreground/20 rounded-md animate-pulse" />
+                }}
+                exit={{
+                  opacity: 0,
+                  x: 0,
+                  scale: 1,
+                  transition: { duration: 0 },
+                }}
+              >
+                <AnimatePresence>
+                  {/* Animated semi-transparent overlay that appears when viewing a previous version
+                  Uses framer-motion for smooth fade in/out transitions */}
+                  {!isCurrentVersion && (
+                    <motion.div
+                      className="left-0 absolute h-dvh w-[400px] top-0 bg-zinc-900/50 z-50"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    />
                   )}
-                </div>
-              </div>
+                </AnimatePresence>
 
-              <BlockActions
-                block={block}
-                currentVersionIndex={currentVersionIndex}
-                handleVersionChange={handleVersionChange}
-                isCurrentVersion={isCurrentVersion}
-                mode={mode}
-                metadata={metadata}
-                setMetadata={setMetadata}
-              />
-            </div>
-
-            <div className="dark:bg-muted bg-background h-full overflow-y-scroll !max-w-full items-center">
-              <blockDefinition.content
-                title={block.title}
-                content={
-                  isCurrentVersion
-                    ? block.content
-                    : getDocumentContentById(currentVersionIndex)
-                }
-                mode={mode}
-                status={block.status}
-                currentVersionIndex={currentVersionIndex}
-                suggestions={[]}
-                onSaveContent={saveContent}
-                isInline={false}
-                isCurrentVersion={isCurrentVersion}
-                getDocumentContentById={getDocumentContentById}
-                isLoading={isDocumentsFetching && !block.content}
-                metadata={metadata}
-                setMetadata={setMetadata}
-              />
-
-              <AnimatePresence>
-                {isCurrentVersion && (
-                  <Toolbar
-                    isToolbarVisible={isToolbarVisible}
-                    setIsToolbarVisibleAction={setIsToolbarVisible}
-                    appendAction={append}
+                <div className="flex flex-col h-full justify-between items-center gap-4 border-2 border-blue-500 dark:border-zinc-700">
+                  {/* Main message display component that renders the chat history
+                    Handles message streaming, voting, and reload functionality */}
+                  <BlockMessages
+                    chatId={chatId}
                     isLoading={isLoading}
-                    stop={stop}
+                    votes={votes}
+                    messages={messages}
                     setMessages={setMessages}
-                    blockKind={block.kind}
+                    reload={reload}
+                    isReadonly={isReadonly}
+                    blockStatus={block.status}
                   />
-                )}
-              </AnimatePresence>
-            </div>
 
-            <AnimatePresence>
-              {!isCurrentVersion && (
-                <VersionFooter
-                  currentVersionIndex={currentVersionIndex}
-                  documents={documents}
-                  handleVersionChangeAction={handleVersionChange}
-                />
-              )}
-            </AnimatePresence>
+
+                  {/* Input form with multimodal capabilities for text, documents, and attachments
+                    Provides a flexible interface for user interactions and file uploads */}
+                  <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">
+                    <MultimodalInput
+                      chatId={chatId}
+                      input={input}
+                      setInput={setInput}
+                      handleSubmit={handleSubmit}
+                      isLoading={isLoading}
+                      stop={stop}
+                      attachments={attachments}
+                      setAttachments={setAttachments}
+                      messages={messages}
+                      setMessages={setMessages}
+                      documents={documents ?? []}
+                      setDocuments={setDocuments}
+                      uploadQueue={uploadQueue}
+                      setUploadQueue={setUploadQueue}
+                      documentUploadQueue={documentUploadQueue}
+                      setDocumentUploadQueue={setDocumentUploadQueue}
+                      append={append}
+                      className="bg-background dark:bg-muted"
+                    />
+                  </form>
+                </div>
+              </motion.div>
+            )}
+
+            <DocumentPanel
+              block={block}
+              isMobile={isMobile}
+              windowWidth={windowWidth}
+              windowHeight={windowHeight}
+              isCurrentVersion={isCurrentVersion}
+              currentVersionIndex={currentVersionIndex}
+              handleVersionChangeAction={handleVersionChange}
+              mode={mode}
+              metadata={metadata}
+              setMetadataAction={setMetadata}
+              document={document}
+              isContentDirty={isContentDirty}
+              blockDefinition={blockDefinition}
+              getDocumentContentByIdAction={getDocumentContentById}
+              isDocumentsFetching={isDocumentsFetching}
+              documents={documents}
+              isToolbarVisible={isToolbarVisible}
+              setIsToolbarVisibleAction={setIsToolbarVisible}
+              appendAction={append}
+              isLoading={isLoading}
+              stopAction={stop}
+              setMessagesAction={setMessages}
+              saveContentAction={saveContent}
+            />
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
 

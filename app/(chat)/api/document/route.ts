@@ -1,5 +1,5 @@
 import { auth } from '@/app/(auth)/auth';
-import type { BlockKind } from '@/components/block/block';
+import type { BlockKind } from '@/lib/types';
 import {
   deleteDocumentsByIdAfterTimestamp,
   getDocumentsById,

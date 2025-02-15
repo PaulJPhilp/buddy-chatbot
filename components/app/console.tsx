@@ -29,6 +29,21 @@ interface ConsoleProps {
   setConsoleOutputs: Dispatch<SetStateAction<Array<ConsoleOutput>>>;
 }
 
+/**
+ * A resizable console component that displays command outputs and execution status.
+ * Features include:
+ * - Vertical resizing with min/max height constraints
+ * - Auto-scrolling to latest output
+ * - Support for text and image outputs
+ * - Status indicators (in progress, loading packages, completed, failed)
+ * - Clear console functionality
+ * - Automatic clearing when block becomes invisible
+ * 
+ * @param {ConsoleProps} props - The component props
+ * @param {Array<ConsoleOutput>} props.consoleOutputs - Array of console outputs to display
+ * @param {Dispatch<SetStateAction<Array<ConsoleOutput>>>} props.setConsoleOutputs - Function to update console outputs
+ * @returns {JSX.Element | null} The console component if there are outputs, null otherwise
+ */
 export function Console({ consoleOutputs, setConsoleOutputs }: ConsoleProps) {
   const [height, setHeight] = useState<number>(300);
   const [isResizing, setIsResizing] = useState(false);

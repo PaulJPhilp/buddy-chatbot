@@ -1,4 +1,4 @@
-
+import type { Message, Tool } from 'ai';
 import { z } from 'zod';
 
 export const LocationQuerySchema = z.object({
@@ -175,11 +175,30 @@ export interface WeatherAtLocation {
 	};
 }
 
+// Block Types
+export const blockDefinitions = ['text', 'code', 'image', 'sheet', 'widget'] as const;
+export type BlockKind = typeof blockDefinitions[number];
+
+export type DocumentActionType = 'create' | 'update' | 'request-suggestions';
+export type DocumentActionTense = 'present' | 'past';
+
+export type MessageMode = 'view' | 'edit';
+
+export type EnhancedMessage = Message & {
+  tools?: (Tool & {
+    result: string | null | undefined;
+  })[];
+};
+
+export type SetMessagesFunction = (
+  messages: Message[] | ((prevMessages: Message[]) => Message[])
+) => void;
+
 export interface DocumentAttachment {
 	id: string;
 	content: string | null;
 	title: string;
-	kind: 'code' | 'text' | 'image' | 'sheet' | 'widget';
+	kind: BlockKind;
 	createdAt: Date;
 	userId: string;
 }

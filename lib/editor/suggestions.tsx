@@ -9,7 +9,7 @@ import { createRoot } from 'react-dom/client';
 
 import { Suggestion as PreviewSuggestion } from '@/components/suggestions/suggestion';
 import type { Suggestion } from '@/lib/db/schema';
-import type { BlockKind } from '@/components/block/block';
+import type { BlockKind } from '@/lib/types';
 
 export interface UISuggestion extends Suggestion {
   selectionStart: number;

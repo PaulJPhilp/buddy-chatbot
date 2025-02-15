@@ -13,12 +13,59 @@ import { Button } from '@/components/ui/button';
 import { LoaderIcon } from '@/components/ui/icons';
 import { useBlock } from '@/hooks/use-block';
 
+/**
+ * Props interface for the VersionFooter component.
+ * 
+ * @explanation
+ * This interface defines the contract for version control functionality,
+ * including navigation between versions, document state management, and
+ * current version tracking. Each prop serves a specific purpose in the
+ * version control workflow.
+ */
 interface VersionFooterProps {
   handleVersionChangeAction: (type: 'next' | 'prev' | 'toggle' | 'latest') => void;
   documents: Array<Document> | undefined;
   currentVersionIndex: number;
 }
 
+/**
+ * A responsive footer component for document version control and management.
+ * 
+ * @explanation
+ * The VersionFooter provides version control functionality with a user-friendly
+ * interface. It implements:
+ * 
+ * 1. Version Navigation:
+ *    - Actions for next, previous, and latest versions
+ *    - Visual indication of current version state
+ *    - Optimistic updates during version changes
+ * 
+ * 2. Responsive Design:
+ *    - Adapts layout for mobile and desktop views
+ *    - Smooth animations for visibility transitions
+ *    - Spring-based motion for natural feel
+ * 
+ * 3. State Management:
+ *    - SWR integration for data synchronization
+ *    - Mutation handling with loading states
+ *    - Optimistic data updates for better UX
+ * 
+ * 4. User Feedback:
+ *    - Loading indicators during mutations
+ *    - Clear version status information
+ *    - Disabled states during operations
+ * 
+ * The component uses Framer Motion for animations and implements optimistic
+ * updates through SWR to provide immediate feedback while maintaining data
+ * consistency.
+ * 
+ * @param {VersionFooterProps} props - The component props
+ * @param {(type: 'next' | 'prev' | 'toggle' | 'latest') => void} props.handleVersionChangeAction
+ *        - Callback for version navigation actions
+ * @param {Array<Document> | undefined} props.documents - Available document versions
+ * @param {number} props.currentVersionIndex - Index of currently displayed version
+ * @returns {JSX.Element | undefined} The rendered footer or undefined if no documents
+ */
 export const VersionFooter = ({
   handleVersionChangeAction,
   documents,

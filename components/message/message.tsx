@@ -1,28 +1,38 @@
 'use client';
 
-import type { ChatRequestOptions, Message } from 'ai';
+import type { Message } from 'ai';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useState } from 'react';
-
-import type { Vote } from '@/lib/db/schema';
-
-import { DisplayDocument } from '@/components/document/display-document';
-import { DocumentToolCall, DocumentToolResult } from '@/components/document/document';
 import { Markdown } from '@/components/message/markdown';
 import { MessageActions } from '@/components/message/message-actions';
 import { MessageEditor } from '@/components/message/message-editor';
 import { MessageReasoning } from '@/components/message/message-reasoning';
-import { PreviewAttachment } from '@/components/prompter/preview-attachment';
+import { DocumentToolCall } from '@/components/document/document-tool';
+import { DocumentToolResult } from '@/components/document/document-tool';
 import { ExtendableWeather } from '@/components/tools/weather/weather';
 import { Button } from '@/components/ui/button';
+import { PencilEditIcon } from '@/components/ui/icons';
 import {
-  PencilEditIcon,
-  SparklesIcon,
-} from '@/components/ui/icons';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import type { Vote } from '@/lib/db/schema';
 import { cn } from '@/lib/utils';
+import type { MessageMode, SetMessagesFunction } from '@/lib/types';
 import equal from 'fast-deep-equal';
+import { DisplayDocument } from '../document/display-document';
+
+interface PreviewMessageProps {
+  chatId: string;
+  message: Message;
+  vote: Vote | undefined;
+  isLoading: boolean;
+  setMessages: SetMessagesFunction;
+  reload: () => void;
+  isReadonly: boolean;
+}
 
 const PurePreviewMessage = ({
   chatId,
@@ -32,27 +42,17 @@ const PurePreviewMessage = ({
   setMessages,
   reload,
   isReadonly,
-}: {
-  chatId: string;
-  message: Message;
-  vote: Vote | undefined;
-  isLoading: boolean;
-  setMessages: (
-    messages: Message[] | ((messages: Message[]) => Message[]),
-  ) => void;
-  reload: (
-    chatRequestOptions?: ChatRequestOptions,
-  ) => Promise<string | null | undefined>;
-  isReadonly: boolean;
-}) => {
+}: PreviewMessageProps) => {
 
-  const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const [mode, setMode] = useState<MessageMode>('view');
   const ReasoningSection = ({
     reasoning,
     isLoading,
+    mode,
   }: {
     reasoning?: string;
     isLoading: boolean;
+    mode: MessageMode;
   }) => {
     if (!reasoning) return null;
 
@@ -74,10 +74,12 @@ const PurePreviewMessage = ({
     return (
       <div className="flex flex-row justify-end gap-2">
         {attachments.map((attachment) => (
-          <PreviewAttachment
-            key={attachment.url}
-            attachment={attachment}
-          />
+          <div key={attachment.url}>
+            {/* <PreviewAttachment
+              key={attachment.url}
+              attachment={attachment}
+            /> */}
+          </div>
         ))}
       </div>
     );
@@ -89,7 +91,7 @@ const PurePreviewMessage = ({
     return (
       <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border bg-background">
         <div className="translate-y-px">
-          <SparklesIcon size={14} />
+          {/* <SparklesIcon size={14} /> */}
         </div>
       </div>
     );
@@ -105,7 +107,7 @@ const PurePreviewMessage = ({
     role: string;
     isReadonly: boolean;
     hasContent: boolean;
-    mode: 'view' | 'edit';
+    mode: MessageMode;
     onEdit: () => void;
   }) => {
     if (!hasContent || mode !== 'view') return null;
@@ -117,7 +119,8 @@ const PurePreviewMessage = ({
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                className="px-2 h-fit rounded-full text-muted-foreground opacity-0 group-hover/message:opacity-100"
+                className="px-2 h-fit rounded-full text-muted-foreground 
+                  opacity-0 group-hover/message:opacity-100"
                 onClick={onEdit}
               >
                 <PencilEditIcon />
@@ -157,7 +160,7 @@ const PurePreviewMessage = ({
     isReadonly,
   }: {
     toolName: string;
-    result: any;
+    result: any; // Tool results are dynamically typed based on the tool
     isReadonly: boolean;
   }) => {
     switch (toolName) {
@@ -202,7 +205,9 @@ const PurePreviewMessage = ({
   }) => {
     switch (toolName) {
       case 'getWeather':
-        return <ExtendableWeather />;
+        return (
+          <ExtendableWeather />
+        );
       case 'createDocument':
         return (
           <DisplayDocument
@@ -310,6 +315,7 @@ const PurePreviewMessage = ({
             <ReasoningSection
               reasoning={message.reasoning}
               isLoading={isLoading}
+              mode={mode}
             />
 
             {(message.content || message.reasoning) && (
@@ -402,7 +408,7 @@ export const ThinkingMessage = () => {
         )}
       >
         <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
-          <SparklesIcon size={14} />
+          {/* <SparklesIcon size={14} /> */}
         </div>
 
         <div className="flex flex-col gap-2 w-full">

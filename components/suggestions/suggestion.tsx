@@ -6,7 +6,7 @@ import { useWindowSize } from 'usehooks-ts';
 
 import type { UISuggestion } from '@/lib/editor/suggestions';
 
-import type { BlockKind } from '@/components/block/block';
+import type { BlockKind } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { CrossIcon, MessageIcon } from '@/components/ui/icons';
 import { cn } from '@/lib/utils';

@@ -15,12 +15,30 @@ import { cn } from '@/lib/utils';
 
 import { CheckCircleFillIcon, ChevronDownIcon } from '@/components/ui/icons';
 
+interface ModelSelectorProps {
+  selectedModelId: string;
+  className?: string;
+}
+
+/**
+ * A dropdown component for selecting AI chat models with optimistic updates.
+ * Features include:
+ * - Displays currently selected model name
+ * - Shows a dropdown with available models and their descriptions
+ * - Provides visual feedback for the selected model
+ * - Implements optimistic updates for a smooth user experience
+ * - Persists selection in cookies
+ * 
+ * @param {ModelSelectorProps} props - The component props
+ * @param {string} props.selectedModelId - The ID of the currently selected model
+ * @param {string} [props.className] - Optional CSS classes for styling the dropdown trigger
+ * @returns {JSX.Element} The model selector dropdown component
+ */
 export function ModelSelector({
   selectedModelId,
   className,
-}: {
-  selectedModelId: string;
-} & React.ComponentProps<typeof Button>) {
+}: ModelSelectorProps) {
+  
   const [open, setOpen] = useState(false);
   const [optimisticModelId, setOptimisticModelId] =
     useOptimistic(selectedModelId);

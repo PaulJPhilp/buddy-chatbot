@@ -16,7 +16,7 @@ import {
   message,
   vote,
 } from './schema';
-import type { BlockKind } from '@/components/block/block';
+import type { BlockKind } from '@/lib/types';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth

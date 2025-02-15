@@ -1,12 +1,43 @@
 'use client';
 import React from 'react';
 
-import type { BlockKind } from '@/components/block/block';
+import type { BlockKind } from '@/lib/types';
 
 interface DocumentSkeletonProps {
   blockKind: BlockKind;
 }
 
+/**
+ * A loading placeholder component that mimics the structure of a document
+ * block while content is being fetched.
+ * 
+ * @explanation
+ * This skeleton loader provides visual feedback during document loading,
+ * implementing:
+ * 
+ * 1. Visual Elements:
+ *    - Animated pulse effects
+ *    - Block-specific layouts
+ *    - Placeholder content areas
+ * 
+ * 2. Accessibility:
+ *    - Maintains UI structure during loading
+ *    - Prevents layout shifts
+ *    - Provides visual loading indicators
+ * 
+ * 3. Block Type Handling:
+ *    - Adapts layout based on blockKind
+ *    - Preserves consistent spacing
+ *    - Matches final content dimensions
+ * 
+ * The component ensures a smooth loading experience by maintaining the same
+ * dimensions and structure as the actual content, preventing jarring
+ * transitions when the real content loads. It uses subtle animations to
+ * indicate the loading state while keeping the interface stable.
+ * 
+ * @param props - Configuration for the skeleton loader
+ * @returns A placeholder component matching the document's structure
+ */
 export const DocumentSkeleton: React.FC<DocumentSkeletonProps> = ({
   blockKind,
 }: DocumentSkeletonProps) => {

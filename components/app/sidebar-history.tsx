@@ -57,17 +57,61 @@ type GroupedChats = {
   older: Chat[];
 };
 
+/**
+ * Props interface for the ChatItem component in the sidebar history.
+ * 
+ * @explanation
+ * ChatItemProps defines the contract for the ChatItem component, which represents
+ * a single chat entry in the sidebar's chat history. The interface includes:
+ * 1. Chat data for displaying chat information
+ * 2. Active state handling for visual feedback
+ * 3. Deletion callback for chat removal
+ * 4. Mobile sidebar state management
+ * 
+ * This interface supports the component's core functionalities:
+ * - Chat navigation
+ * - Visual state management
+ * - Mobile responsiveness
+ * - Chat deletion handling
+ */
+interface ChatItemProps {
+  chat: Chat;
+  isActive: boolean;
+  onDelete: (chatId: string) => void;
+  setOpenMobile: (open: boolean) => void;
+}
+
+/**
+ * Renders a single chat item in the sidebar history with interaction controls.
+ * 
+ * @explanation
+ * The PureChatItem is a performance-optimized component that displays a chat entry
+ * in the sidebar. It implements:
+ * 1. Navigation:
+ *    - Links to individual chat routes
+ *    - Mobile sidebar state management
+ * 2. Interactive features:
+ *    - Dropdown menu for actions
+ *    - Visibility controls (public/private)
+ *    - Delete functionality
+ * 3. Visual feedback:
+ *    - Active state highlighting
+ *    - Hover states for actions
+ *    - Visibility status indicators
+ * 
+ * The component is memoized to prevent unnecessary re-renders, only updating
+ * when the active state changes. It integrates with the sidebar's mobile
+ * responsiveness and provides consistent chat management functionality.
+ * 
+ * @param {ChatItemProps} props - The component props
+ * @returns {JSX.Element} The rendered chat item
+ */
 const PureChatItem = ({
   chat,
   isActive,
   onDelete,
   setOpenMobile,
-}: {
-  chat: Chat;
-  isActive: boolean;
-  onDelete: (chatId: string) => void;
-  setOpenMobile: (open: boolean) => void;
-}) => {
+}: ChatItemProps) => {
   const { visibilityType, setVisibilityType } = useChatVisibility({
     chatId: chat.id,
     initialVisibility: chat.visibility,
