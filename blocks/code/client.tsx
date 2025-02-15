@@ -1,5 +1,11 @@
-import { Block } from '@/components/create-block';
-import { CodeEditor } from '@/components/code-editor';
+import {
+  Console,
+  type ConsoleOutput,
+  type ConsoleOutputContent,
+} from '@/components/app/console';
+import { Block } from '@/components/block/create-block';
+import type { UIBlock } from '@/components/block/block';
+import { CodeEditor } from '@/components/editors/code-editor';
 import {
   CopyIcon,
   LogsIcon,
@@ -7,14 +13,9 @@ import {
   PlayIcon,
   RedoIcon,
   UndoIcon,
-} from '@/components/icons';
-import { toast } from 'sonner';
+} from '@/components/ui/icons';
 import { generateUUID } from '@/lib/utils';
-import  {
-  Console,
-  type ConsoleOutput,
-  type ConsoleOutputContent,
-} from '@/components/console';
+import { toast } from 'sonner';
 
 const OUTPUT_HANDLERS = {
   matplotlib: `
@@ -77,15 +78,10 @@ export const codeBlock = new Block<'code', Metadata>({
   },
   onStreamPart: ({ streamPart, setBlock }) => {
     if (streamPart.type === 'code-delta') {
-      setBlock((draftBlock) => ({
+      setBlock((draftBlock: UIBlock) => ({
         ...draftBlock,
         content: streamPart.content as string,
-        isVisible:
-          draftBlock.status === 'streaming' &&
-          draftBlock.content.length > 300 &&
-          draftBlock.content.length < 310
-            ? true
-            : draftBlock.isVisible,
+        isVisible: true,
         status: 'streaming',
       }));
     }

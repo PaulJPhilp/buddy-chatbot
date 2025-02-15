@@ -10,7 +10,7 @@ const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);
 
 export async function listAllDocuments(): Promise<DocumentAttachment[]> {
-  console.log('listAllDocuments Actions');
+
   try {
     return await db
       .select()

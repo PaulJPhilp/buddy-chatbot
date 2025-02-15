@@ -1,4 +1,5 @@
-import { Block } from '@/components/create-block';
+import type { UIBlock } from '@/components/block/block';
+import { Block } from '@/components/block/create-block';
 import {
 	Card,
 	CardContent,
@@ -6,12 +7,12 @@ import {
 	CardFooter,
 	CardHeader,
 	CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
 	CopyIcon,
 	LogsIcon,
 	MessageIcon
-} from '@/components/icons';
+} from '@/components/ui/icons';
 import { toast } from 'sonner';
 
 type WidgetProps = {
@@ -44,7 +45,7 @@ export const widgetBlock = new Block<'widget', Metadata>({
 			}));
 		}
 		if (streamPart.type === "content-update") {
-			setBlock((draftBlock) => ({
+			setBlock((draftBlock: UIBlock) => ({
 				...draftBlock,
 				content: draftBlock.content + (streamPart.content as string),
 				status: "streaming",
@@ -53,7 +54,6 @@ export const widgetBlock = new Block<'widget', Metadata>({
 	},
 
 	content: ({ metadata, setMetadata, ...props }) => {
-		console.log('widgetcontent', props);
 		return (
 			<>
 				<div className="px-1">

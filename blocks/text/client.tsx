@@ -1,7 +1,7 @@
-import { Block } from '@/components/create-block';
-import { DiffView } from '@/components/diffview';
-import { DocumentSkeleton } from '@/components/document-skeleton';
-import { Editor } from '@/components/editor';
+import { Block } from '@/components/block/create-block';
+import { DocumentSkeleton } from '@/components/document/document-skeleton';
+import { DiffView } from '@/components/editors/diffview';
+import { Editor } from '@/components/editors/editor';
 import {
   ClockRewind,
   CopyIcon,
@@ -9,10 +9,11 @@ import {
   PenIcon,
   RedoIcon,
   UndoIcon,
-} from '@/components/icons';
+} from '@/components/ui/icons';
 import type { Suggestion } from '@/lib/db/schema';
 import { toast } from 'sonner';
 import { getSuggestions } from '../actions';
+import type { UIBlock } from '@/components/block/block';
 
 interface TextBlockMetadata {
   suggestions: Array<Suggestion>;
@@ -41,16 +42,11 @@ export const textBlock = new Block<'text', TextBlockMetadata>({
     }
 
     if (streamPart.type === 'text-delta') {
-      setBlock((draftBlock) => {
+      setBlock((draftBlock: UIBlock) => {
         return {
           ...draftBlock,
           content: draftBlock.content + (streamPart.content as string),
-          isVisible:
-            draftBlock.status === 'streaming' &&
-            draftBlock.content.length > 400 &&
-            draftBlock.content.length < 450
-              ? true
-              : draftBlock.isVisible,
+          isVisible: true,
           status: 'streaming',
         };
       });
@@ -91,9 +87,9 @@ export const textBlock = new Block<'text', TextBlockMetadata>({
           />
 
           {/* biome-ignore lint/complexity/useOptionalChain: <explanation> */}
-{metadata &&
-          metadata.suggestions &&
-          metadata.suggestions.length > 0 ? (
+          {metadata &&
+            metadata.suggestions &&
+            metadata.suggestions.length > 0 ? (
             <div className="md:hidden h-dvh w-12 shrink-0" />
           ) : null}
         </div>

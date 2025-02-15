@@ -1,6 +1,6 @@
-import { Block } from '@/components/create-block';
-import { CopyIcon, RedoIcon, UndoIcon } from '@/components/icons';
-import { ImageEditor } from '@/components/image-editor';
+import { Block } from '@/components/block/create-block';
+import { ImageEditor } from '@/components/editors/image-editor';
+import { CopyIcon, RedoIcon, UndoIcon } from '@/components/ui/icons';
 import { toast } from 'sonner';
 
 export const imageBlock = new Block({
@@ -8,7 +8,7 @@ export const imageBlock = new Block({
   description: 'Useful for image generation',
   onStreamPart: ({ streamPart, setBlock }) => {
     if (streamPart.type === 'image-delta') {
-      setBlock((draftBlock) => ({
+      setBlock((draftBlock: any) => ({
         ...draftBlock,
         content: streamPart.content as string,
         isVisible: true,

@@ -11,7 +11,6 @@ export const getCityLocation = async (cityQuery: LocationQuery): Promise<Locatio
   'use server';
 
   const url = `${LOACATION_API_URL}?q=${cityQuery.cityName},${cityQuery.stateCode},${cityQuery.countryCode}&appid=${process.env.OPEN_WEATHER_API_KEY}&limit=${cityQuery.limit ?? 5}`;
-  console.log(`getCityLocation: ${cityQuery.cityName},${cityQuery.stateCode},${cityQuery.countryCode}`);
   try {
     const response = await fetch(url);
     const data = await response.json();
@@ -30,9 +29,8 @@ export const getCityWeather = async (cityQuery: WeatherQuery): Promise<WeatherRe
   try {
     const response = await fetch(url);
     const data = await response.json();
-    console.log(data)
     const weatherData = WeatherResponseSchema.parse(data);
-    return data;
+    return weatherData;
   } catch (e) {
     console.error(e);
     throw new Error('Failed to generate query');
@@ -48,7 +46,6 @@ function celsiusToKelvin(celsius: number) {
 }
 
 function processWeatherData(weatherData: WeatherResponse): WeatherAtLocation {
-  console.log(`processWeatherData:\n ${JSON.stringify(weatherData.daily, null, 2)}`);
   const hourlyData: WeatherAtLocation['hourly'] = {
     time: weatherData.hourly.map(hour => moment.unix(hour.dt).utc().format('YYYY-MM-DD HH:mm:ss')),
     temperature: weatherData.hourly.map(hour => kelvinToCelsius(hour.temp)),
@@ -97,19 +94,11 @@ function processWeatherData(weatherData: WeatherResponse): WeatherAtLocation {
     daily: dailyData,
   };
 
-  //console.log(`processWeatherData:\n ${JSON.stringify(weather, null, 2)}`);
   return weather;
 }
 
 export const getWeatherData = async (location: LocationQuery): Promise<WeatherAtLocation> => {
-  console.log(`getWeatherData()`)
   const locationData = await getCityLocation(location);
-
-  /*** 
-  const weatherData = await fetch(
-    `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m&hourly=temperature_2m&daily=sunrise,sunset&timezone=auto`,
-  );
-  ***/
 
   const weatherQuery: WeatherQuery = {
     lat: Math.abs(locationData[0].lat),
@@ -119,9 +108,6 @@ export const getWeatherData = async (location: LocationQuery): Promise<WeatherAt
   };
 
   const weatherData: WeatherResponse = await getCityWeather(weatherQuery);
-  //console.log(`getCityWeather Response:\n ${JSON.stringify(Object.keys(weatherData), null, 2)}`);
-  //console.log(`getCityWeather Response:\n ${JSON.stringify(weatherData.hourly[0], null, 2)}`);
-  //console.log(`getCityWeather Response:\n ${weatherData.hourly.length}`);
   return processWeatherData(weatherData);
 }
 

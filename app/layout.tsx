@@ -3,7 +3,7 @@ import { Analytics } from "@vercel/analytics/react"
 import type { Metadata } from 'next';
 import { Toaster } from 'sonner';
 
-import { ThemeProvider } from '@/components/theme-provider';
+import { ThemeProvider } from '@/components/app/theme-provider';
 
 import './globals.css';
 

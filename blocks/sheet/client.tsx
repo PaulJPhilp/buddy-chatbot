@@ -1,12 +1,12 @@
-import { Block } from '@/components/create-block';
+import { Block } from '@/components/block/create-block';
+import { SpreadsheetEditor } from '@/components/editors/sheet-editor';
 import {
   CopyIcon,
   LineChartIcon,
   RedoIcon,
   SparklesIcon,
   UndoIcon,
-} from '@/components/icons';
-import { SpreadsheetEditor } from '@/components/sheet-editor';
+} from '@/components/ui/icons';
 import { parse, unparse } from 'papaparse';
 import { toast } from 'sonner';
 
@@ -15,10 +15,10 @@ type Metadata = any;
 export const sheetBlock = new Block<'sheet', Metadata>({
   kind: 'sheet',
   description: 'Useful for working with spreadsheets',
-  initialize: async () => {},
+  initialize: async () => { },
   onStreamPart: ({ setBlock, streamPart }) => {
     if (streamPart.type === 'sheet-delta') {
-      setBlock((draftBlock) => ({
+      setBlock((draftBlock: any) => ({
         ...draftBlock,
         content: streamPart.content as string,
         isVisible: true,

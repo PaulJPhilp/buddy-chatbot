@@ -7,9 +7,9 @@ import {
 } from 'prosemirror-view';
 import { createRoot } from 'react-dom/client';
 
-import { Suggestion as PreviewSuggestion } from '@/components/suggestion';
+import { Suggestion as PreviewSuggestion } from '@/components/suggestions/suggestion';
 import type { Suggestion } from '@/lib/db/schema';
-import { BlockKind } from '@/components/block';
+import type { BlockKind } from '@/components/block/block';
 
 export interface UISuggestion extends Suggestion {
   selectionStart: number;
@@ -116,7 +116,7 @@ export function createSuggestionWidget(
   root.render(
     <PreviewSuggestion
       suggestion={suggestion}
-      onApply={onApply}
+      onApplyAction={onApply}
       blockKind={blockKind}
     />,
   );
