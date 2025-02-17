@@ -15,8 +15,11 @@ import {
   type Message,
   message,
   vote,
+  knowledgeBase,
+  type KnowledgeBase,
 } from './schema';
 import type { BlockKind } from '@/lib/types';
+import { generateEmbeddings } from '../ai/embeddings';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -192,15 +195,23 @@ export async function saveDocument({
   content: string;
   userId: string;
 }) {
+  console.log('Saving document');
   try {
-    return await db.insert(document).values({
+
+    const embeddings = await generateEmbeddings(content);
+    console.log('Generated embeddings', embeddings.length, embeddings[0].embedding.length);
+
+    const resource = await db.insert(document).values({
       id,
       title,
       kind,
       content,
       userId,
       createdAt: new Date(),
+      embedding: embeddings[0].embedding,
     });
+
+    return resource;
   } catch (error) {
     console.error('Failed to save document in database');
     throw error;
@@ -354,6 +365,32 @@ export async function updateChatVisiblityById({
     return await db.update(chat).set({ visibility }).where(eq(chat.id, chatId));
   } catch (error) {
     console.error('Failed to update chat visibility in database');
+    throw error;
+  }
+}
+
+export async function saveKnowledgeBase({
+  id,
+  title,
+  knowledge
+}: KnowledgeBase) {
+  console.log('Saving Knowledge Base');
+  try {
+
+    const embeddings = await generateEmbeddings(knowledge);
+    console.log('Generated embeddings', embeddings.length, embeddings[0].embedding.length);
+
+    const resource = await db.insert(knowledgeBase).values({
+      id,
+      title,
+      knowledge,
+      createdAt: new Date(),
+      embedding: embeddings[0].embedding,
+    });
+
+    return resource;
+  } catch (error) {
+    console.error('Failed to save document in database');
     throw error;
   }
 }

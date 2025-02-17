@@ -40,7 +40,7 @@ interface AppSidebarProps {
  * @param {User | undefined} props.user - The current user object, undefined if not logged in
  * @returns {JSX.Element} The rendered sidebar component
  */
-export function AppSidebar({ user }: AppSidebarProps) {
+export function AppSidebar({ user }: AppSidebarProps): JSX.Element {
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
 

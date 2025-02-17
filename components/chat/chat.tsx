@@ -1,6 +1,6 @@
 'use client';
 
-import type { Attachment, Message } from 'ai';
+import type { Attachment, Message, ChatRequestOptions } from 'ai';
 import { useChat } from 'ai/react';
 import { useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
@@ -170,7 +170,7 @@ export function ChatText({
   const {
     messages: rawMessages,
     setMessages: setRawMessages,
-    handleSubmit,
+    handleSubmit: handleChatSubmit,
     input,
     setInput,
     append,
@@ -191,6 +191,28 @@ export function ChatText({
       toast.error(`An error occured, please try again!: ${error ? error.message : error}`);
     },
   });
+
+  // Custom submit handler for preprocessing prompts
+  const handleSubmit = async (
+    event?: { preventDefault?: () => void } | undefined,
+    chatRequestOptions?: ChatRequestOptions | undefined
+  ) => {
+    event?.preventDefault?.();
+
+    try {
+      // TODO: Add RAG processing here
+      // Example: const enhancedPrompt = await processPromptWithRAG(input);
+      
+      // TODO: Save prompt to database here if needed
+      // Example: await savePromptToDatabase(input);
+      
+      // Pass through to useChat's submit handler
+      return handleChatSubmit(event, chatRequestOptions);
+    } catch (error) {
+      console.error('Error processing prompt:', error);
+      toast.error('Failed to process your message. Please try again.');
+    }
+  };
 
   // Convert Message[] to EnhancedMessage[] for display purposes
   const messages = rawMessages.map((msg) => ({

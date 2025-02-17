@@ -123,21 +123,23 @@ export function DisplayDocument({
   const document: Document = previewDocument ?? (
     block.status === 'streaming'
       ? {
-        title: block.title,
-        kind: block.kind,
-        content: block.content,
-        id: block.documentId,
-        createdAt: new Date(),
-        userId: 'noop',
-      }
-      : {
-        title: '',
-        kind: args.kind,
-        content: null,
-        id: '',
-        createdAt: new Date(),
-        userId: 'noop',
-      }
+          title: block.title,
+          kind: block.kind,
+          content: block.content,
+          id: block.documentId,
+          createdAt: new Date(),
+          userId: 'noop',
+          embedding: null,
+        }
+      : documents?.find((doc) => doc.id === block.documentId) ?? {
+          title: '',
+          kind: args.kind,
+          content: null,
+          id: block.documentId || '',
+          createdAt: new Date(),
+          userId: 'noop',
+          embedding: null,
+        }
   );
 
   if (!document) return <LoadingSkeleton blockKind={block.kind} />;

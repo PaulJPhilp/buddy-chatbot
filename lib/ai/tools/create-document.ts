@@ -2,7 +2,8 @@ import { generateUUID } from '@/lib/utils';
 import  { type DataStreamWriter, tool } from 'ai';
 import { z } from 'zod';
 import type { Session } from 'next-auth';
-import { blockKinds, documentHandlersByBlockKind } from '@/lib/blocks/server';
+import { documentHandlersByBlockKind } from '@/lib/blocks/server';
+import { blockDefinitions } from '@/lib/types';
 
 interface CreateDocumentProps {
   session: Session;
@@ -15,7 +16,7 @@ export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
       'Create a document for a writing or content creation activities. This tool will call other functions that will generate the contents of the document based on the title and kind.',
     parameters: z.object({
       title: z.string(),
-      kind: z.enum(blockKinds),
+      kind: z.enum(blockDefinitions),
     }),
     execute: async ({ title, kind }) => {
       const id = generateUUID();
@@ -51,6 +52,7 @@ export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
 
       await documentHandler.onCreateDocument({
         id,
+        kind,
         title,
         dataStream,
         session,

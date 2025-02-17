@@ -3,6 +3,7 @@ import {
   createDataStreamResponse,
   smoothStream,
   streamText,
+  tool,
 } from 'ai';
 
 import { auth } from '@/app/(auth)/auth';
@@ -13,6 +14,7 @@ import {
   getChatById,
   saveChat,
   saveMessages,
+  saveKnowledgeBase,
 } from '@/lib/db/queries';
 import {
   generateUUID,
@@ -20,11 +22,14 @@ import {
   sanitizeResponseMessages,
 } from '@/lib/utils';
 
+import { findRelevantContent } from '@/lib/ai/embeddings';
+
 import { generateTitleFromUserMessage } from '../../actions';
 import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
+import { z } from 'zod';
 //import { listAllDocuments } from '@/lib/ai/tools/listAll-documents';
 
 export const maxDuration = 60;
@@ -91,11 +96,11 @@ export async function POST(request: Request) {
           selectedChatModel.indexOf('reasoning') > -1
             ? []
             : [
-                'getWeather',
-                'createDocument',
-                'updateDocument',
-                'requestSuggestions',
-              ],
+              'getWeather',
+              'createDocument',
+              'updateDocument',
+              'requestSuggestions',
+            ],
         experimental_transform: smoothStream({ chunking: 'word' }),
         experimental_generateMessageId: generateUUID,
         tools: {
@@ -106,7 +111,34 @@ export async function POST(request: Request) {
             session,
             dataStream,
           }),
+          addKnowledgeBaseEntry: tool({
+            description: `Add an entry to your knowledge base.
+              If the user provides a random piece of knowledge unprompted or a prompt that starts with "I need to know", use this tool without asking for confirmation.`,
+            parameters: z.object({
+              knowledge: z
+                .string()
+                .describe('the content or resource to add to the knowledge base'),
+            }),
+            execute: async ({ knowledge }) => {
+              console.log('adding addKnowledgeBaseEntry', knowledge)
+              return saveKnowledgeBase({
+                id: generateUUID(),
+                createdAt: new Date(),
+                title: 'Knowledge Base Entry',
+                embedding: null,
+                knowledge
+              });
+            },
+          }),
+          getInformation: tool({
+            description: `get information from your knowledge base to answer questions.`,
+            parameters: z.object({
+              question: z.string().describe('the users question'),
+            }),
+            execute: async ({ question }) => findRelevantContent(question),
+          }),
         },
+
         onFinish: async ({ response, reasoning }) => {
 
           if (session.user?.id) {
@@ -178,4 +210,7 @@ export async function DELETE(request: Request) {
       status: 500,
     });
   }
+}
+function createResource(arg0: { content: string; }): any {
+  throw new Error('Function not implemented.');
 }

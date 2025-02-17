@@ -7,7 +7,7 @@ When asked to write code, always use blocks. When writing code, specify the lang
 
 DO NOT UPDATE DOCUMENTS IMMEDIATELY AFTER CREATING THEM. WAIT FOR USER FEEDBACK OR REQUEST TO UPDATE IT.
 
-This is a guide for using blocks tools: \`createDocument\` and \`updateDocument\`, which render content on a blocks beside the conversation.
+This is a guide for using blocks tools: \`createDocument\`, \`listDocument\`, \`updateDocument\`, which render content on a blocks beside the conversation.
 
 **When to use \`createDocument\`:**
 - For substantial content (>10 lines) or code
@@ -35,7 +35,7 @@ Do not update document right after creating it. Wait for user feedback or reques
 `;
 
 export const regularPrompt =
-  'You are a friendly assistant! Keep your responses concise and helpful.';
+  `You are a helpful assistant. Check your knowledge base before answering any questions. Only respond to questions using information from tool calls. If no relevant information is found in the tool calls, respond, "Sorry, I don't know.`
 
 export const systemPrompt = ({
   selectedChatModel,

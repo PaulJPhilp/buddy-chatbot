@@ -19,6 +19,7 @@ export interface SaveDocumentProps {
 export interface CreateDocumentCallbackProps {
   id: string;
   title: string;
+  kind: BlockKind;
   dataStream: DataStreamWriter;
   session: Session;
 }
@@ -47,6 +48,7 @@ export function createDocumentHandler<T extends BlockKind>(config: {
     onCreateDocument: async (args: CreateDocumentCallbackProps) => {
       const draftContent = await config.onCreateDocument({
         id: args.id,
+        kind: args.kind,
         title: args.title,
         dataStream: args.dataStream,
         session: args.session,
@@ -97,4 +99,4 @@ export const documentHandlersByBlockKind: Array<DocumentHandler> = [
   sheetDocumentHandler
 ];
 
-export const blockKinds = ['text', 'code', 'image', 'sheet', 'widget'] as const;
+export const blockKinds: BlockKind[] = ['text', 'code', 'image', 'sheet', 'widget'] as const;

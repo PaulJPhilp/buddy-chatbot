@@ -76,6 +76,80 @@ buddy-chatbot/
 - Supports various document types
 - Implements display and interaction logic
 
+## Chat Message Data Flow
+
+### User Input to Response Flow
+
+1. **User Input Phase**
+   - User enters prompt in the chat interface
+   - Input is managed by the `ChatText` component
+   - Pre-processing of message including:
+     - Message ID generation
+     - Timestamp assignment
+     - User context attachment
+
+2. **Request Processing**
+   - Message is sent to `/api/chat` endpoint
+   - Request includes:
+     - Selected chat model
+     - Message history for context
+     - User preferences
+     - Visibility settings
+
+3. **AI Processing**
+   - Server processes request through selected language model
+   - Implements streaming for real-time response
+   - Handles special message types (e.g., doctor, drill sergeant)
+   - Supports tool invocations for enhanced capabilities:
+     - Weather information
+     - Document creation/updates
+     - Suggestion generation
+
+4. **Response Handling**
+   - Streaming response is processed word by word
+   - Real-time updates to UI via:
+     - Message state management
+     - Progressive rendering
+     - Error handling
+   - Support for multi-modal content:
+     - Text responses
+     - Image generation
+     - Document manipulation
+
+5. **UI Updates**
+   - Message display in chat interface
+   - Typing indicators
+   - Tool execution status
+   - Error state handling
+   - History updates
+
+6. **Post-Processing**
+   - Message persistence
+   - History updates
+   - Cache invalidation
+   - Analytics tracking
+   - Suggestion generation
+
+### State Management During Flow
+
+1. **Client State**
+   - Message queue management
+   - Input state
+   - Loading states
+   - Error states
+
+2. **Server State**
+   - Session management
+   - Message history
+   - Model context
+   - Tool states
+
+3. **Persistence Layer**
+   - Chat history storage
+   - User preferences
+   - Model selections
+   - Document states
+
 ## API Architecture
 
 ### 1. Internal API Routes

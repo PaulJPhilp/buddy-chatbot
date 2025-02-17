@@ -9,6 +9,7 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  vector,
 } from 'drizzle-orm/pg-core';
 // import { blockKinds } from '../blocks/server';
 
@@ -73,12 +74,13 @@ export const document = pgTable(
     createdAt: timestamp('createdAt').notNull(),
     title: text('title').notNull(),
     content: text('content'),
-    kind: varchar('text', { enum: ['text', 'code', 'image', 'sheet', 'widget'] })
+    kind: varchar('kind', { enum: ['text', 'code', 'image', 'sheet', 'widget'] })
       .notNull()
       .default('text'),
     userId: uuid('userId')
       .notNull()
       .references(() => user.id),
+    embedding: vector('embedding', { dimensions: 1536 }),
   },
   (table) => {
     return {
@@ -103,6 +105,7 @@ export const suggestion = pgTable(
       .notNull()
       .references(() => user.id),
     createdAt: timestamp('createdAt').notNull(),
+    embedding: vector('embedding', { dimensions: 1536 }),
   },
   (table) => ({
     pk: primaryKey({ columns: [table.id] }),
@@ -114,3 +117,21 @@ export const suggestion = pgTable(
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
+
+export const knowledgeBase = pgTable(
+  'KnowledgeBase',
+  {
+    id: uuid('id').notNull().defaultRandom(),
+    createdAt: timestamp('createdAt').notNull(),
+    title: text('title').notNull(),
+    knowledge: text('knowledge').notNull(),
+    embedding: vector('embedding', { dimensions: 1536 }),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.id, table.createdAt] }),
+    };
+  },
+);
+
+export type KnowledgeBase = InferSelectModel<typeof knowledgeBase>;

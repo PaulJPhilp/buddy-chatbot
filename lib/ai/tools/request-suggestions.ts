@@ -56,6 +56,7 @@ export const requestSuggestions = ({
           id: generateUUID(),
           documentId: documentId,
           isResolved: false,
+          embedding: null, // Will be populated by the embeddings service later
         };
 
         dataStream.writeData({

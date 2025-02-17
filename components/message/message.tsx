@@ -327,10 +327,20 @@ const PurePreviewMessage = ({
                   mode={mode}
                   onEdit={() => setMode('edit')}
                 />
-                <MessageContent
-                  content={message.content as string}
-                  role={message.role}
-                />
+
+
+                
+                  {message.content.length > 0 ? (
+                    <MessageContent
+                      content={message.content as string}
+                      role={message.role}
+                    />
+                  ) : (
+                    <span className="italic font-light">
+                      {`calling tool: ${message?.toolInvocations?.[0].toolName}`}
+                    </span>
+                  )}
+                
               </div>
             )}
 

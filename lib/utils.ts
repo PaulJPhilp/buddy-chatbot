@@ -6,7 +6,7 @@ import type {
 } from 'ai';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
+import { customAlphabet } from 'nanoid';
 import type { Message as DBMessage, Document } from '@/lib/db/schema';
 
 export function cn(...inputs: ClassValue[]) {
@@ -222,8 +222,10 @@ export function getDocumentTimestampByIndex(
   documents: Array<Document>,
   index: number,
 ) {
-  if (!documents) return new Date();
+  if (!documents) return new Date();  
   if (index > documents.length) return new Date();
 
   return documents[index].createdAt;
 }
+
+export const nanoid = customAlphabet('abcdefghijklmnopqrstuvwxyz0123456789', 10);

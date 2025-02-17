@@ -14,7 +14,8 @@ export const listAllDocuments = () => {
 				kind: document.kind,
 				content: "",
 				createdAt: document.createdAt,
-				userId: document.userId
+				userId: document.userId,
+				embedding: document.embedding
 			}))
 		},
 	})
