@@ -47,6 +47,7 @@ function isDrillSergeantMessage(message: Message): boolean {
 }
 
 export async function POST(request: Request) {
+  console.log('POST /api/chat');
   const {
     id,
     messages,
@@ -113,7 +114,7 @@ export async function POST(request: Request) {
           }),
           addKnowledgeBaseEntry: tool({
             description: `Add an entry to your knowledge base.
-              If the user provides a random piece of knowledge unprompted or a prompt that starts with "I need to know", use this tool without asking for confirmation.`,
+              If the user provides a random piece of knowledge unprompted or a prompt that starts with "I need you to know", use this tool without asking for confirmation.`,
             parameters: z.object({
               knowledge: z
                 .string()

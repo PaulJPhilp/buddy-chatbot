@@ -6,6 +6,7 @@ import {
 import type { KnowledgeBase } from '@/lib/db/schema';
 
 export async function POST(request: Request) {
+	console.log('POST /api/knowledge');
 	const { searchParams } = new URL(request.url);
 	const id = searchParams.get('id');
 
