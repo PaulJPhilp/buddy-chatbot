@@ -1,22 +1,19 @@
 import { z } from 'zod';
 import { listAllDocuments as dbListAllDocuments } from '@/lib/db/queries';
 import { tool } from 'ai';
+import type { DocumentListItem } from '@/lib/types';
 
 export const listAllDocuments = () => {
 	return tool({
 		description: 'List all documents',
 		parameters: z.object({}),
-		execute: async (): Promise<ReturnType<typeof dbListAllDocuments>> => {
+		execute: async (): Promise<DocumentListItem[]> => {
 			const documents = await dbListAllDocuments()
 			return documents.map((document) => ({
-				id: document.id,
 				title: document.title,
 				kind: document.kind,
-				content: "",
 				createdAt: document.createdAt,
-				userId: document.userId,
-				embedding: document.embedding
-			}))
+			})).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 5);
 		},
 	})
 }

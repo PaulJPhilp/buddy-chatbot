@@ -38,7 +38,8 @@ export const generateEmbedding = async (value: string): Promise<number[]> => {
 };
 
 export const findRelevantContent = async (userQuery: string) => {
-	
+	console.log('Finding relevant content', userQuery);
+
 	const userQueryEmbeddings = await generateEmbeddings(userQuery);
 	const userQueryEmbedding = userQueryEmbeddings[0].embedding;
 

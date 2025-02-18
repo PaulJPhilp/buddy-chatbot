@@ -103,7 +103,8 @@ export function Chat({
 }
 
 export function ChatImage() {
-  const { messages, input, handleInputChange, handleSubmit } = useChat();
+  const { messages, input, handleInputChange, handleSubmit, data } = useChat();
+  console.log('data', data);
 
   return (
     <>

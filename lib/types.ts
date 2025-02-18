@@ -202,3 +202,9 @@ export interface DocumentAttachment {
 	createdAt: Date;
 	userId: string;
 }
+
+export interface DocumentListItem {
+	title: string;
+	kind: BlockKind;
+	createdAt: Date;
+}

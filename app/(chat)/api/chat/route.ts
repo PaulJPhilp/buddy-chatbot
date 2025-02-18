@@ -3,7 +3,6 @@ import {
   createDataStreamResponse,
   smoothStream,
   streamText,
-  tool,
 } from 'ai';
 
 import { auth } from '@/app/(auth)/auth';
@@ -13,8 +12,7 @@ import {
   deleteChatById,
   getChatById,
   saveChat,
-  saveMessages,
-  saveKnowledgeBase,
+  saveMessages
 } from '@/lib/db/queries';
 import {
   generateUUID,
@@ -22,17 +20,20 @@ import {
   sanitizeResponseMessages,
 } from '@/lib/utils';
 
-import { findRelevantContent } from '@/lib/ai/embeddings';
-
 import { generateTitleFromUserMessage } from '../../actions';
 import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
-import { z } from 'zod';
-//import { listAllDocuments } from '@/lib/ai/tools/listAll-documents';
+import { addKnowledgeBaseEntry, getKnowledgeBaseEntry, listAllKnowledgeBaseEntries } from '@/lib/ai/tools/knowldgeBaseEntry';
+import { listAllDocuments } from '@/lib/ai/tools/listAll-documents';
 
 export const maxDuration = 60;
+
+function echoQuery(userMessage: Message): Message {
+  console.log('echoQuery', userMessage.content)
+  return userMessage;
+}
 
 function isDoctorMessage(message: Message): boolean {
   return message.content.startsWith('Doctor');
@@ -47,7 +48,7 @@ function isDrillSergeantMessage(message: Message): boolean {
 }
 
 export async function POST(request: Request) {
-  console.log('POST /api/chat');
+ 
   const {
     id,
     messages,
@@ -69,8 +70,8 @@ export async function POST(request: Request) {
 
   const chat = await getChatById({ id });
 
+  const title = await generateTitleFromUserMessage({ message: userMessage });
   if (!chat) {
-    const title = await generateTitleFromUserMessage({ message: userMessage });
     await saveChat({ id, userId: session.user.id, title });
   }
 
@@ -88,6 +89,8 @@ export async function POST(request: Request) {
 
   return createDataStreamResponse({
     execute: (dataStream) => {
+      dataStream.writeData('initialized call');
+
       const result = streamText({
         model: myProvider.languageModel(selectedChatModel),
         system: prompt,
@@ -97,10 +100,12 @@ export async function POST(request: Request) {
           selectedChatModel.indexOf('reasoning') > -1
             ? []
             : [
-              'getWeather',
-              'createDocument',
-              'updateDocument',
-              'requestSuggestions',
+              //'getWeather',
+              //'createDocument',
+              //'updateDocument',
+              'addKnowledgeBaseEntry',
+              'getKnowledgeBaseEntry',
+              'listAllKnowledgeBaseEntries',
             ],
         experimental_transform: smoothStream({ chunking: 'word' }),
         experimental_generateMessageId: generateUUID,
@@ -108,39 +113,32 @@ export async function POST(request: Request) {
           getWeather,
           createDocument: createDocument({ session, dataStream }),
           updateDocument: updateDocument({ session, dataStream }),
-          requestSuggestions: requestSuggestions({
-            session,
-            dataStream,
-          }),
-          addKnowledgeBaseEntry: tool({
-            description: `Add an entry to your knowledge base.
-              If the user provides a random piece of knowledge unprompted or a prompt that starts with "I need you to know", use this tool without asking for confirmation.`,
-            parameters: z.object({
-              knowledge: z
-                .string()
-                .describe('the content or resource to add to the knowledge base'),
-            }),
-            execute: async ({ knowledge }) => {
-              console.log('adding addKnowledgeBaseEntry', knowledge)
-              return saveKnowledgeBase({
-                id: generateUUID(),
-                createdAt: new Date(),
-                title: 'Knowledge Base Entry',
-                embedding: null,
-                knowledge
-              });
-            },
-          }),
-          getInformation: tool({
-            description: `get information from your knowledge base to answer questions.`,
-            parameters: z.object({
-              question: z.string().describe('the users question'),
-            }),
-            execute: async ({ question }) => findRelevantContent(question),
-          }),
+          requestSuggestions: requestSuggestions({ session, dataStream }),
+          addKnowledgeBaseEntry: addKnowledgeBaseEntry({ title: title }),
+          getKnowledgeBaseEntry: getKnowledgeBaseEntry({ query: userMessage.content }),
+          listAllKnowledgeBaseEntries: listAllKnowledgeBaseEntries({ query: userMessage.content }),
+          listAllDocuments: listAllDocuments(),
+        },
+
+        onStepFinish: async (step) => {
+          console.log('Chat.onStepFinish()');
+          console.log('step', step.stepType, step.finishReason, step.toolCalls, step.isContinued, step.text);
+        },
+
+        onChunk: async ({ chunk }) => {
+          dataStream.writeMessageAnnotation({ chunk: '123' });
+          //console.log('Chat.onChunk()');
+          //console.log('chunk', JSON.stringify(chunk, null, 2));
         },
 
         onFinish: async ({ response, reasoning }) => {
+          console.log('Chat.onFinish()');
+          dataStream.writeMessageAnnotation({
+            id: id, // e.g. id from saved DB record
+            other: 'information',
+          });
+
+          dataStream.writeData('call completed');
 
           if (session.user?.id) {
             try {
@@ -149,6 +147,7 @@ export async function POST(request: Request) {
                 reasoning,
               });
 
+              //if (!sanitizedResponseMessages.length) return;
               await saveMessages({
                 messages: sanitizedResponseMessages.map((message) => {
                   return {
@@ -211,7 +210,4 @@ export async function DELETE(request: Request) {
       status: 500,
     });
   }
-}
-function createResource(arg0: { content: string; }): any {
-  throw new Error('Function not implemented.');
 }

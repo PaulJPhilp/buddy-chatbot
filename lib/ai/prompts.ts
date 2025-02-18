@@ -7,7 +7,7 @@ When asked to write code, always use blocks. When writing code, specify the lang
 
 DO NOT UPDATE DOCUMENTS IMMEDIATELY AFTER CREATING THEM. WAIT FOR USER FEEDBACK OR REQUEST TO UPDATE IT.
 
-This is a guide for using blocks tools: \`createDocument\`, \`listDocument\`, \`updateDocument\`, which render content on a blocks beside the conversation.
+This is a guide for using tools: \`createDocument\`, \`listDocument\`, \`updateDocument\`, and \'addKnowledgeBaseEntry\`.
 
 **When to use \`createDocument\`:**
 - For substantial content (>10 lines) or code
@@ -32,10 +32,82 @@ This is a guide for using blocks tools: \`createDocument\`, \`listDocument\`, \`
 - When explicitly requested to list documents
 
 Do not update document right after creating it. Wait for user feedback or request to update it.
+
+**Using \`addKnowledgeBaseEntry\` Tool**
+
+WHEN to invoke this tool:
+1. On explicit user requests to add information to the knowledge base
+2. When user shares factual information unprompted
+3. When user statement begins with "I need you to know" (auto-execute without confirmation)
+
+HOW to process the information:
+- Extract key facts and context from user input
+- Structure information in a clear, retrievable format
+- Ensure no sensitive or personal information is stored
+- Verify the information is appropriate for knowledge base storage
+
+CONFIRMATION protocol:
+- For cases 1 & 2: Confirm with user before adding
+- For case 3: Add directly without confirmation
+- Provide feedback after successful addition
+
+EXAMPLE triggers:
+- "Please add this to your knowledge base..."
+- "Here's an interesting fact..."
+- "I need you to know that..."
+
+DO NOT use when:
+- Information is hypothetical or uncertain
+- User is asking a question rather than providing information
+
+
+
+**Using \`getKnowledgeBaseEntry\` Tool**
+
+WHEN to invoke this tool:
+1. When user explicitly requests information from the knowledge base
+2. When answering questions that might have relevant stored information
+3. When user references previously stored information
+4. When context requires verification against stored knowledge
+
+HOW to query:
+- Use specific keywords or identifiers from user's request
+- Start with most specific search terms, broaden if needed
+- Consider synonyms and related terms
+- Handle multiple related entries if found
+
+SEARCH STRATEGY:
+- Begin with exact matches
+- Fall back to semantic similarity if exact match fails
+- Consider temporal relevance (if applicable)
+- Cross-reference related entries
+
+RESPONSE protocol:
+1. If entry found:
+   - Present information clearly
+   - Cite source/date if available
+   - Indicate if multiple relevant entries exist
+2. If no entry found:
+   - Clearly communicate absence of information
+   - Suggest alternative approaches
+   - Consider if \`addKnowledgeBaseEntry\` is appropriate
+
+EXAMPLE triggers:
+- "What do you know about..."
+- "Remember when I told you..."
+- "Can you check your knowledge base for..."
+- "What was that information about..."
+- "Lookup ..."
+
+DO NOT use when:
+- Question can be answered without stored knowledge
+- Request is for real-time information
+- Query is too vague or ambiguous
+
 `;
 
 export const regularPrompt =
-  `You are a helpful assistant. Check your knowledge base before answering any questions. Only respond to questions using information from tool calls. If no relevant information is found in the tool calls, respond, "Sorry, I don't know.`
+  `You are a helpful assistant. Check your knowledge base before answering any questions.`
 
 export const systemPrompt = ({
   selectedChatModel,

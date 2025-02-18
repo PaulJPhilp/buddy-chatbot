@@ -12,7 +12,7 @@ import { DocumentToolCall } from '@/components/document/document-tool';
 import { DocumentToolResult } from '@/components/document/document-tool';
 import { ExtendableWeather } from '@/components/tools/weather/weather';
 import { Button } from '@/components/ui/button';
-import { PencilEditIcon } from '@/components/ui/icons';
+import { PencilEditIcon, SparklesIcon } from '@/components/ui/icons';
 import {
   Tooltip,
   TooltipContent,
@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import type { MessageMode, SetMessagesFunction } from '@/lib/types';
 import equal from 'fast-deep-equal';
 import { DisplayDocument } from '../document/display-document';
+import { PreviewAttachment } from '../prompter/preview-attachment';
 
 interface PreviewMessageProps {
   chatId: string;
@@ -43,6 +44,7 @@ const PurePreviewMessage = ({
   reload,
   isReadonly,
 }: PreviewMessageProps) => {
+  console.log(`PreviewMessage: ${message.content}`);
 
   const [mode, setMode] = useState<MessageMode>('view');
   const ReasoningSection = ({
@@ -75,10 +77,10 @@ const PurePreviewMessage = ({
       <div className="flex flex-row justify-end gap-2">
         {attachments.map((attachment) => (
           <div key={attachment.url}>
-            {/* <PreviewAttachment
+            {<PreviewAttachment
               key={attachment.url}
               attachment={attachment}
-            /> */}
+            />}
           </div>
         ))}
       </div>
@@ -91,7 +93,7 @@ const PurePreviewMessage = ({
     return (
       <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border bg-background">
         <div className="translate-y-px">
-          {/* <SparklesIcon size={14} /> */}
+          { <SparklesIcon size={14} />} 
         </div>
       </div>
     );
@@ -164,6 +166,8 @@ const PurePreviewMessage = ({
     isReadonly: boolean;
   }) => {
     switch (toolName) {
+      case 'getKnowledgeBaseEntry':
+        return <DisplayDocument isReadonly={isReadonly} result={result} />;
       case 'getWeather':
         return <ExtendableWeather weatherAtLocation={result} />;
       case 'createDocument':
@@ -203,6 +207,7 @@ const PurePreviewMessage = ({
     args: any;
     isReadonly: boolean;
   }) => {
+
     switch (toolName) {
       case 'getWeather':
         return (
@@ -255,6 +260,7 @@ const PurePreviewMessage = ({
       <div className="flex flex-col gap-4">
         {toolInvocations.map((toolInvocation) => {
           const { toolName, toolCallId, state, args, result } = toolInvocation;
+          console.log(`toolInvocation: ${toolName}  ${state}`);
 
           if (state === 'result') {
             return (
@@ -264,6 +270,9 @@ const PurePreviewMessage = ({
                   result={result}
                   isReadonly={isReadonly}
                 />
+                <div className="text-xs text-muted-foreground mt-1">
+                  Results for {toolName}
+                </div>
               </div>
             );
           }
@@ -280,6 +289,10 @@ const PurePreviewMessage = ({
                 args={args}
                 isReadonly={isReadonly}
               />
+
+              <div className="text-xs text-muted-foreground mt-1">
+                Running {toolName}
+              </div>
             </div>
           );
         })}

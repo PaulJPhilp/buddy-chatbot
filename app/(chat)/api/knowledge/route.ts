@@ -23,16 +23,13 @@ export async function POST(request: Request) {
 	const {
 		knowledge,
 		title,
-		createdAt,
 	}: KnowledgeBase = await request.json();
 
 	if (session.user?.id) {
 		const document = await saveKnowledgeBase({
 			id,
-			knowledge,
 			title,
-			createdAt,
-			embedding: null,
+			knowledge,
 		});
 
 		return Response.json(document, { status: 200 });

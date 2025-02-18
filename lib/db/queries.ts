@@ -16,7 +16,6 @@ import {
   message,
   vote,
   knowledgeBase,
-  type KnowledgeBase,
 } from './schema';
 import type { BlockKind } from '@/lib/types';
 import { generateEmbeddings } from '../ai/embeddings';
@@ -108,6 +107,7 @@ export async function getChatById({ id }: { id: string }) {
 }
 
 export async function saveMessages({ messages }: { messages: Array<Message> }) {
+  //if (messages.length === 0) return;
   try {
     return await db.insert(message).values(messages);
   } catch (error) {
@@ -369,16 +369,26 @@ export async function updateChatVisiblityById({
   }
 }
 
+export type KnowledgeBaseInput = {
+  id: string;
+  title: string;
+  knowledge: string;
+}
+
+
 export async function saveKnowledgeBase({
   id,
   title,
   knowledge
-}: KnowledgeBase) {
+}: KnowledgeBaseInput) {
   console.log('Saving Knowledge Base');
   try {
 
+    if (stringIsNullOrEmpty(title)) {
+      title = 'Knowledge Base Entry';
+    }
+
     const embeddings = await generateEmbeddings(knowledge);
-    console.log('Generated embeddings', embeddings.length, embeddings[0].embedding.length);
 
     const resource = await db.insert(knowledgeBase).values({
       id,
@@ -390,7 +400,21 @@ export async function saveKnowledgeBase({
 
     return resource;
   } catch (error) {
-    console.error('Failed to save document in database');
+    console.error('Failed to save knowldgeBase in database');
     throw error;
   }
 }
+
+export async function listAllKnowledgeBases() {
+  try {
+    return await db.select().from(knowledgeBase);
+  } catch (error) {
+    console.error('Failed to list all knowldgeBases from database');
+    throw error;
+  }
+}
+
+function stringIsNullOrEmpty(input: string) {
+  return input === null || input === '' || input === undefined;
+}
+
