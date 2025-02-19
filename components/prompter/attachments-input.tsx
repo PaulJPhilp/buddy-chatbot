@@ -40,7 +40,7 @@ export function PureAttachmentsInput({
       const uploadedFiles = await Promise.all(uploadPromises);
 
       const validAttachments = uploadedFiles
-        .filter((file): file is UploadResponse => 
+        .filter((file): file is UploadResponse =>
           file !== undefined && 'url' in file && 'contentType' in file && 'pathname' in file
         )
         .map((file) => ({
@@ -64,7 +64,7 @@ export function PureAttachmentsInput({
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (isLoading) {
       toast.error('Please wait for the model to finish its response!');
       return;

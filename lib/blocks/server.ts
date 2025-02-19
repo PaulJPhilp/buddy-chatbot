@@ -17,7 +17,6 @@ export interface SaveDocumentProps {
 }
 
 export interface CreateDocumentCallbackProps {
-  id: string;
   title: string;
   kind: BlockKind;
   dataStream: DataStreamWriter;
@@ -47,22 +46,29 @@ export function createDocumentHandler<T extends BlockKind>(config: {
     kind: config.kind,
     onCreateDocument: async (args: CreateDocumentCallbackProps) => {
       const draftContent = await config.onCreateDocument({
-        id: args.id,
         kind: args.kind,
         title: args.title,
         dataStream: args.dataStream,
         session: args.session,
       });
 
+      let documentId: string | undefined;
+
       if (args.session?.user?.id) {
-        await saveDocument({
-          id: args.id,
+        const document = await saveDocument({
           title: args.title,
           content: draftContent,
           kind: config.kind,
           userId: args.session.user.id,
         });
+        documentId = document.id;
       }
+
+      console.log('createDocumentHandler - documentId:', documentId);
+      args.dataStream.writeData({
+        type: 'id',
+        content: documentId ?? '',
+      });
 
       return;
     },
@@ -76,7 +82,6 @@ export function createDocumentHandler<T extends BlockKind>(config: {
 
       if (args.session?.user?.id) {
         await saveDocument({
-          id: args.document.id,
           title: args.document.title,
           content: draftContent,
           kind: config.kind,

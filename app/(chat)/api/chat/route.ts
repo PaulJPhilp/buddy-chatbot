@@ -30,11 +30,6 @@ import { listAllDocuments } from '@/lib/ai/tools/listAll-documents';
 
 export const maxDuration = 60;
 
-function echoQuery(userMessage: Message): Message {
-  console.log('echoQuery', userMessage.content)
-  return userMessage;
-}
-
 function isDoctorMessage(message: Message): boolean {
   return message.content.startsWith('Doctor');
 }
@@ -48,7 +43,7 @@ function isDrillSergeantMessage(message: Message): boolean {
 }
 
 export async function POST(request: Request) {
- 
+
   const {
     id,
     messages,
@@ -100,12 +95,14 @@ export async function POST(request: Request) {
           selectedChatModel.indexOf('reasoning') > -1
             ? []
             : [
-              //'getWeather',
-              //'createDocument',
-              //'updateDocument',
+              'getWeather',
+              'createDocument',
+              'updateDocument',
+              'requestSuggestions',
+              'listAllDocuments',
+              'listAllKnowledgeBaseEntries',
               'addKnowledgeBaseEntry',
               'getKnowledgeBaseEntry',
-              'listAllKnowledgeBaseEntries',
             ],
         experimental_transform: smoothStream({ chunking: 'word' }),
         experimental_generateMessageId: generateUUID,
@@ -116,30 +113,11 @@ export async function POST(request: Request) {
           requestSuggestions: requestSuggestions({ session, dataStream }),
           addKnowledgeBaseEntry: addKnowledgeBaseEntry({ title: title }),
           getKnowledgeBaseEntry: getKnowledgeBaseEntry({ query: userMessage.content }),
-          listAllKnowledgeBaseEntries: listAllKnowledgeBaseEntries({ query: userMessage.content }),
+          listAllKnowledgeBaseEntries: listAllKnowledgeBaseEntries({ query: userMessage.content }),  
           listAllDocuments: listAllDocuments(),
         },
 
-        onStepFinish: async (step) => {
-          console.log('Chat.onStepFinish()');
-          console.log('step', step.stepType, step.finishReason, step.toolCalls, step.isContinued, step.text);
-        },
-
-        onChunk: async ({ chunk }) => {
-          dataStream.writeMessageAnnotation({ chunk: '123' });
-          //console.log('Chat.onChunk()');
-          //console.log('chunk', JSON.stringify(chunk, null, 2));
-        },
-
         onFinish: async ({ response, reasoning }) => {
-          console.log('Chat.onFinish()');
-          dataStream.writeMessageAnnotation({
-            id: id, // e.g. id from saved DB record
-            other: 'information',
-          });
-
-          dataStream.writeData('call completed');
-
           if (session.user?.id) {
             try {
               const sanitizedResponseMessages = sanitizeResponseMessages({
@@ -147,7 +125,10 @@ export async function POST(request: Request) {
                 reasoning,
               });
 
-              //if (!sanitizedResponseMessages.length) return;
+              if (!sanitizedResponseMessages.length) {
+                console.log('No sanitized response messages');
+                return
+              }
               await saveMessages({
                 messages: sanitizedResponseMessages.map((message) => {
                   return {

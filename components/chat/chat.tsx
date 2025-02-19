@@ -1,71 +1,72 @@
-'use client';
+'use client'
 
-import type { Attachment, Message, ChatRequestOptions } from 'ai';
-import { useChat } from 'ai/react';
-import { useState } from 'react';
-import useSWR, { useSWRConfig } from 'swr';
+//import type { DocumentAttachment } from '@/lib/types'
+import type { ChatRequestOptions, Message, Attachment } from 'ai'
+import { useChat } from 'ai/react'
+import { useState } from 'react'
 
-import { ChatHeader } from '@/components/chat/chat-header';
-import type { Vote } from '@/lib/db/schema';
-import type { DocumentAttachment, EnhancedMessage, SetMessagesFunction } from '@/lib/types';
-import { fetcher, generateUUID } from '@/lib/utils';
+import { ChatHeader } from '@/components/chat/chat-header'
+import type { Vote } from '@/lib/db/schema'
+import type { DocumentAttachment, EnhancedMessage, SetMessagesFunction } from '@/lib/types'
+import { fetcher, generateUUID } from '@/lib/utils'
 
-import type { VisibilityType } from '@/components/app/visibility-selector';
-import { Block } from '@/components/block/block';
-import { Messages } from '@/components/message/messages';
-import { MultimodalInput } from '@/components/prompter/multimodal-input';
-import { useBlockSelector } from '@/hooks/use-block';
-import { toast } from 'sonner';
+import type { VisibilityType } from '@/components/app/visibility-selector'
+import { Block } from '@/components/block/block'
+import { Messages } from '@/components/message/messages'
+import { MultimodalInput } from '@/components/prompter/multimodal-input'
+import { useBlockSelector } from '@/hooks/use-block'
+import { toast } from 'sonner'
 
-import Image from 'next/image';
+import Image from 'next/image'
+import useSWR, { useSWRConfig } from 'swr'
 
 /**
  * Props for configuring chat behavior and initial state
  */
 interface ChatProps {
-  id: string;
-  initialMessages: Array<Message>;
-  selectedChatModel: string;
-  selectedVisibilityType: VisibilityType;
-  isReadonly: boolean;
+  id: string
+  initialMessages: Array<Message>
+  selectedChatModel: string
+  selectedVisibilityType: VisibilityType
+  isReadonly: boolean
 }
 
 /**
  * A sophisticated chat interface that handles AI-powered conversations.
- * 
+ *
  * @explanation
  * This component implements a full-featured chat system with:
- * 
+ *
  * 1. Message Management:
  *    - Real-time message streaming
  *    - History preservation
  *    - Multi-modal content support (text, images)
  *    - Message retry and regeneration
- * 
+ *
  * 2. AI Integration:
  *    - Multiple model support
  *    - Context-aware responses
  *    - Dynamic model switching
  *    - Streaming response handling
- * 
+ *
  * 3. UI/UX Features:
  *    - Progressive loading
  *    - Typing indicators
  *    - Error handling and recovery
  *    - Responsive design
- * 
+ *
  * 4. Privacy & Control:
  *    - Visibility settings
  *    - Read-only mode
  *    - Message persistence
  *    - Access control
- * 
+ *
  * The component maintains conversation state, handles message
  * streaming, and provides real-time feedback during AI responses.
  * It supports both text and image-based models, automatically
  * detecting and adapting to the appropriate mode based on the
  * message content.
- * 
+ *
  * @param props - Configuration options for the chat interface
  * @returns A fully functional chat interface component
  */
@@ -76,19 +77,19 @@ export function Chat({
   selectedVisibilityType,
   isReadonly,
 }: ChatProps) {
-  let usingImageModel = false;
+  let usingImageModel = false
   initialMessages.forEach((message) => {
     if (message.toolInvocations) {
       message.toolInvocations.forEach((toolInvocation) => {
         if (toolInvocation.toolName === 'generateImage') {
-          usingImageModel = true;
+          usingImageModel = true
         }
-      });
+      })
     }
-  });
+  })
 
   if (usingImageModel) {
-    return <ChatImage />;
+    return <ChatImage />
   }
 
   return (
@@ -99,12 +100,11 @@ export function Chat({
       selectedVisibilityType={selectedVisibilityType}
       isReadonly={isReadonly}
     />
-  );
+  )
 }
 
 export function ChatImage() {
-  const { messages, input, handleInputChange, handleSubmit, data } = useChat();
-  console.log('data', data);
+  const { messages, input, handleInputChange, handleSubmit } = useChat()
 
   return (
     <>
@@ -130,7 +130,7 @@ export function ChatImage() {
                           Generating image...
                         </div>
                       )
-                    ) : null
+                    ) : null,
                   )
                 ) : (
                   <p>{m.content}</p>
@@ -150,7 +150,7 @@ export function ChatImage() {
         </form>
       </div>
     </>
-  );
+  )
 }
 
 export function ChatText({
@@ -160,13 +160,14 @@ export function ChatText({
   selectedVisibilityType,
   isReadonly,
 }: {
-  id: string;
-  initialMessages: Array<Message>;
-  selectedChatModel: string;
-  selectedVisibilityType: VisibilityType;
-  isReadonly: boolean;
+  id: string
+  initialMessages: Array<Message>
+  selectedChatModel: string
+  selectedVisibilityType: VisibilityType
+  isReadonly: boolean
 }) {
-  const { mutate } = useSWRConfig();
+  //void console.log('ChatText', id)
+  const { mutate } = useSWRConfig()
 
   const {
     messages: rawMessages,
@@ -186,62 +187,64 @@ export function ChatText({
     sendExtraMessageFields: true,
     generateId: generateUUID,
     onFinish: () => {
-      mutate('/api/history');
+      mutate('/api/history')
     },
     onError: (error) => {
-      toast.error(`An error occured, please try again!: ${error ? error.message : error}`);
+      toast.error(
+        `An error occured, please try again!: ${error ? error.message : error}`,
+      )
     },
-  });
+  })
+  // void console.log(input)
 
   // Custom submit handler for preprocessing prompts
   const handleSubmit = async (
     event?: { preventDefault?: () => void } | undefined,
-    chatRequestOptions?: ChatRequestOptions | undefined
+    chatRequestOptions?: ChatRequestOptions | undefined,
   ) => {
-    event?.preventDefault?.();
+    event?.preventDefault?.()
 
     try {
       // TODO: Add RAG processing here
       // Example: const enhancedPrompt = await processPromptWithRAG(input);
-      
+
       // TODO: Save prompt to database here if needed
       // Example: await savePromptToDatabase(input);
-      
+
       // Pass through to useChat's submit handler
-      return handleChatSubmit(event, chatRequestOptions);
+      return handleChatSubmit(event, chatRequestOptions)
     } catch (error) {
-      console.error('Error processing prompt:', error);
-      toast.error('Failed to process your message. Please try again.');
+      console.error('Error processing prompt:', error)
+      toast.error('Failed to process your message. Please try again.')
     }
-  };
+  }
 
   // Convert Message[] to EnhancedMessage[] for display purposes
   const messages = rawMessages.map((msg) => ({
     ...msg,
     tools: (msg as any).tools || [],
-  })) as EnhancedMessage[];
+  })) as EnhancedMessage[]
 
   // Pass through setMessages without conversion since tools is now optional
   const setMessages: SetMessagesFunction = (
-    messagesOrUpdater: Message[] | ((prevMessages: Message[]) => Message[])
+    messagesOrUpdater: Message[] | ((prevMessages: Message[]) => Message[]),
   ) => {
     if (typeof messagesOrUpdater === 'function') {
-      setRawMessages((prev) => messagesOrUpdater(prev));
+      setRawMessages((prev) => messagesOrUpdater(prev))
     } else {
-      setRawMessages(messagesOrUpdater);
+      setRawMessages(messagesOrUpdater)
     }
-  };
+  }
 
-  const { data: votes } = useSWR<Array<Vote>>(
-    `/api/vote?chatId=${id}`,
-    fetcher,
-  );
+  const { data: votes } = useSWR<Array<Vote>>(`/api/vote?chatId=${id}`, fetcher)
 
-  const [attachments, setAttachments] = useState<Array<Attachment>>([]);
-  const [documents, setDocuments] = useState<Array<DocumentAttachment>>([]);
-  const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
-  const [documentUploadQueue, setDocumentUploadQueue] = useState<Array<string>>([]);
-  const isBlockVisible = useBlockSelector((state) => state.isVisible);
+  const [attachments, setAttachments] = useState<Array<Attachment>>([])
+  const [documents, setDocuments] = useState<Array<DocumentAttachment>>([])
+  const [uploadQueue, setUploadQueue] = useState<Array<string>>([])
+  const [documentUploadQueue, setDocumentUploadQueue] = useState<Array<string>>(
+    [],
+  )
+  const isBlockVisible = useBlockSelector((state) => state.isVisible)
 
   return (
     <>
@@ -313,5 +316,5 @@ export function ChatText({
         />
       </div>
     </>
-  );
+  )
 }

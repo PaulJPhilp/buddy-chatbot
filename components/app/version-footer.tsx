@@ -80,6 +80,7 @@ export const VersionFooter = ({
   const [isMutating, setIsMutating] = useState(false);
 
   if (!documents) return;
+  if (!block.documentId) return;
 
   return (
     <motion.div

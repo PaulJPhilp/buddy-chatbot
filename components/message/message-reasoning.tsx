@@ -4,6 +4,20 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import { ChevronDownIcon, LoaderIcon } from '../ui/icons';
 import { Markdown } from './markdown';
+import type { MessageMode } from '@/lib/types';
+
+export const ReasoningSection = ({
+  reasoning,
+  isLoading,
+  mode,
+}: {
+  reasoning?: string
+  isLoading: boolean
+  mode: MessageMode
+}) => {
+  return <MessageReasoning isLoading={isLoading} reasoning={reasoning ?? ''} />
+}
+
 
 interface MessageReasoningProps {
   isLoading: boolean;
@@ -14,6 +28,8 @@ export function MessageReasoning({
   isLoading,
   reasoning,
 }: MessageReasoningProps) {
+  if (!reasoning || reasoning === '') return null;
+
   const [isExpanded, setIsExpanded] = useState(true);
 
   const variants = {

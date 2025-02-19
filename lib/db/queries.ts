@@ -1,24 +1,26 @@
 "use server";
 
 import { genSaltSync, hashSync } from 'bcrypt-ts';
-import { and, asc, desc, eq, gt, gte, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, inArray, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
+import { generateDocumentEmbeddings, saveKnowledgeBaseEmbeddings } from './knowledge';
+import { knowledgeBaseTable } from './schema';
 
-import {
-  user,
-  chat,
-  type User,
-  document,
-  type Suggestion,
-  suggestion,
-  type Message,
-  message,
-  vote,
-  knowledgeBase,
-} from './schema';
 import type { BlockKind } from '@/lib/types';
-import { generateEmbeddings } from '../ai/embeddings';
+import {
+  chat,
+  document,
+  documentEmbedding,
+  type DocumentEmbedding,
+  message,
+  type Message,
+  suggestion,
+  type Suggestion,
+  user,
+  type User,
+  vote,
+} from './schema';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -107,9 +109,11 @@ export async function getChatById({ id }: { id: string }) {
 }
 
 export async function saveMessages({ messages }: { messages: Array<Message> }) {
-  //if (messages.length === 0) return;
+  console.log('saveMessages');
+  if (messages.length === 0) return;
   try {
-    return await db.insert(message).values(messages);
+    const result = await db.insert(message).values(messages);
+    return result;
   } catch (error) {
     console.error('Failed to save messages in database', error);
     throw error;
@@ -183,37 +187,40 @@ export async function listAllDocuments() {
 }
 
 export async function saveDocument({
-  id,
   title,
   kind,
   content,
   userId,
 }: {
-  id: string;
   title: string;
   kind: BlockKind;
   content: string;
   userId: string;
 }) {
   console.log('Saving document');
+
   try {
-
-    const embeddings = await generateEmbeddings(content);
-    console.log('Generated embeddings', embeddings.length, embeddings[0].embedding.length);
-
-    const resource = await db.insert(document).values({
-      id,
+    const now = new Date();
+    const [result] = await db.insert(document).values({
       title,
       kind,
       content,
       userId,
-      createdAt: new Date(),
-      embedding: embeddings[0].embedding,
-    });
+      createdAt: now,
+    }).returning();
 
-    return resource;
+    const embeddings: DocumentEmbedding[] = await generateDocumentEmbeddings(content, result.id);
+
+    // Use Promise.all to wait for all embeddings to be inserted
+    const result2 = await Promise.all(embeddings.map(embedding =>
+      db.insert(documentEmbedding).values({
+        ...embedding,
+      }).then(result => result)
+    ));
+
+    return result;
   } catch (error) {
-    console.error('Failed to save document in database');
+    console.error('Error saving document:', error);
     throw error;
   }
 }
@@ -228,7 +235,7 @@ export async function getDocumentsById({ id }: { id: string }) {
 
     return documents;
   } catch (error) {
-    console.error('Failed to get document by id from database');
+    console.error('Failed to get document by id from database', error);
     throw error;
   }
 }
@@ -375,39 +382,25 @@ export type KnowledgeBaseInput = {
   knowledge: string;
 }
 
-
 export async function saveKnowledgeBase({
   id,
   title,
-  knowledge
+  knowledge,
 }: KnowledgeBaseInput) {
-  console.log('Saving Knowledge Base');
+  console.log('Saving knowledge base');
   try {
-
-    if (stringIsNullOrEmpty(title)) {
-      title = 'Knowledge Base Entry';
-    }
-
-    const embeddings = await generateEmbeddings(knowledge);
-
-    const resource = await db.insert(knowledgeBase).values({
-      id,
-      title,
-      knowledge,
-      createdAt: new Date(),
-      embedding: embeddings[0].embedding,
-    });
-
-    return resource;
+    const knowledgeResults = await saveKnowledgeBaseEmbeddings(knowledge, id);
+    console.log('Generated embeddings', knowledgeResults.length);
+    return knowledgeResults;
   } catch (error) {
-    console.error('Failed to save knowldgeBase in database');
+    console.error('Error saving knowledge base:', error);
     throw error;
   }
 }
 
 export async function listAllKnowledgeBases() {
   try {
-    return await db.select().from(knowledgeBase);
+    return await db.select().from(knowledgeBaseTable);
   } catch (error) {
     console.error('Failed to list all knowldgeBases from database');
     throw error;
@@ -418,3 +411,28 @@ function stringIsNullOrEmpty(input: string) {
   return input === null || input === '' || input === undefined;
 }
 
+export async function findRelevantContent(input: string) {
+  if (!input) return null;
+
+  try {
+    // Get embedding for input query
+    const queryEmbedding = sql`to_tsvector(${input})::vector(1536)`;
+
+    // Find most similar documents using cosine similarity
+    const results = await db
+      .select({
+        content: document.content,
+        title: document.title,
+        similarity: sql<number>`1 - (${queryEmbedding} <=> embedding)`.as('similarity'),
+      })
+      .from(document)
+      .orderBy(sql`similarity DESC`)
+      .limit(1);
+
+    console.log('results\n', JSON.stringify(results, null, 2));
+    return results[0] || null;
+  } catch (error) {
+    console.error('Failed to find relevant content:', error);
+    return null;
+  }
+}

@@ -213,14 +213,16 @@ function PureBlock({
 }: BlockProps) {
   const { block, setBlock, metadata, setMetadata } = useBlock()
 
+  const shouldFetchDocument = block.documentId && 
+    block.documentId !== 'init' && 
+    block.status !== 'streaming';
+
   const {
     data: documents,
     isLoading: isDocumentsFetching,
     mutate: mutateDocuments,
   } = useSWR<Array<Document>>(
-    block.documentId !== 'init' && block.status !== 'streaming'
-      ? `/api/document?id=${block.documentId}`
-      : null,
+    shouldFetchDocument ? `/api/document?id=${block.documentId}` : null,
     fetcher,
   )
 
@@ -265,20 +267,29 @@ function PureBlock({
   const { mutate } = useSWRConfig()
   const [isContentDirty, setIsContentDirty] = useState(false)
 
+  const handleDataStream = useCallback((data: any) => {
+    if (data.type === 'documentId' && data.content) {
+      setBlock((currentBlock: any) => ({
+        ...currentBlock,
+        documentId: data.content,
+      }))
+    }
+  }, [setBlock])
+
   const handleContentChange = useCallback(
     (updatedContent: string) => {
-      if (!block) return
+      if (!block || !block.documentId) return;
 
       mutate<Array<Document>>(
         `/api/document?id=${block.documentId}`,
         async (currentDocuments) => {
-          if (!currentDocuments) return undefined
+          if (!currentDocuments) return undefined;
 
-          const currentDocument = currentDocuments.at(-1)
+          const currentDocument = currentDocuments.at(-1);
 
           if (!currentDocument || !currentDocument.content) {
-            setIsContentDirty(false)
-            return currentDocuments
+            setIsContentDirty(false);
+            return currentDocuments;
           }
 
           if (currentDocument.content !== updatedContent) {
@@ -289,78 +300,78 @@ function PureBlock({
                 content: updatedContent,
                 kind: block.kind,
               }),
-            })
+            });
 
-            setIsContentDirty(false)
+            setIsContentDirty(false);
 
             const newDocument = {
               ...currentDocument,
               content: updatedContent,
               createdAt: new Date(),
-            }
+            };
 
-            return [...currentDocuments, newDocument]
+            return [...currentDocuments, newDocument];
           }
-          return currentDocuments
+          return currentDocuments;
         },
         { revalidate: false },
-      )
+      );
     },
     [block, mutate],
-  )
+  );
 
   const debouncedHandleContentChange = useDebounceCallback(
     handleContentChange,
     2000,
-  )
+  );
 
   const saveContent = useCallback(
     (updatedContent: string, debounce: boolean) => {
       if (document && updatedContent !== document.content) {
-        setIsContentDirty(true)
+        setIsContentDirty(true);
 
         if (debounce) {
-          debouncedHandleContentChange(updatedContent)
+          debouncedHandleContentChange(updatedContent);
         } else {
-          handleContentChange(updatedContent)
+          handleContentChange(updatedContent);
         }
       }
     },
     [document, debouncedHandleContentChange, handleContentChange],
-  )
+  );
 
   function getDocumentContentById(index: number) {
-    if (!documents) return ''
-    if (!documents[index]) return ''
-    return documents[index].content ?? ''
+    if (!documents) return '';
+    if (!documents[index]) return '';
+    return documents[index].content ?? '';
   }
 
   const handleVersionChange = (
     type: 'next' | 'prev' | 'toggle' | 'latest',
   ) => {
-    if (!documents) return
+    if (!documents) return;
 
     if (type === 'latest') {
-      setCurrentVersionIndex(documents.length - 1)
-      setMode('edit')
+      setCurrentVersionIndex(documents.length - 1);
+      setMode('edit');
     }
 
     if (type === 'toggle') {
-      setMode((mode) => (mode === 'edit' ? 'diff' : 'edit'))
+      setMode((mode) => (mode === 'edit' ? 'diff' : 'edit'));
     }
 
     if (type === 'prev') {
       if (currentVersionIndex > 0) {
-        setCurrentVersionIndex((index) => index - 1)
+        setCurrentVersionIndex((index) => index - 1);
       }
     } else if (type === 'next') {
       if (currentVersionIndex < documents.length - 1) {
-        setCurrentVersionIndex((index) => index + 1)
+        setCurrentVersionIndex((index) => index + 1);
       }
     }
-  }
+  };
 
-  const [isToolbarVisible, setIsToolbarVisible] = useState(false)
+  const [isToolbarVisible, setIsToolbarVisible] = useState(false);
 
   /*
    * NOTE: if there are no documents, or if
@@ -371,17 +382,17 @@ function PureBlock({
   const isCurrentVersion =
     documents && documents.length > 0
       ? currentVersionIndex === documents.length - 1
-      : true
+      : true;
 
-  const { width: windowWidth, height: windowHeight } = useWindowSize()
-  const isMobile = windowWidth ? windowWidth < 768 : false
+  const { width: windowWidth, height: windowHeight } = useWindowSize();
+  const isMobile = windowWidth ? windowWidth < 768 : false;
 
   const blockDefinition = blockDefinitions.find(
     (definition) => definition.kind === block.kind,
-  )
+  );
 
   if (!blockDefinition) {
-    throw new Error('Block definition not found!')
+    throw new Error('Block definition not found!');
   }
 
   useEffect(() => {
@@ -390,10 +401,10 @@ function PureBlock({
         blockDefinition.initialize({
           documentId: block.documentId ?? '',
           setMetadata,
-        })
+        });
       }
     }
-  }, [block.documentId, blockDefinition, setMetadata])
+  }, [block.documentId, blockDefinition, setMetadata]);
 
   return (
     <>
@@ -529,7 +540,7 @@ function PureBlock({
         )}
       </AnimatePresence>
     </>
-  )
+  );
 }
 
 export const Block = memo(PureBlock, (prevProps, nextProps) => {

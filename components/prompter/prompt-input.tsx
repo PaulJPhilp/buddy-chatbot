@@ -1,21 +1,20 @@
-import type { Dispatch, SetStateAction } from 'react';
 import { Textarea } from '@/components/ui/textarea';
-import type { Message, Attachment } from 'ai';
-import { cx } from 'class-variance-authority';
+import type { Message } from 'ai';
+import type { Dispatch, SetStateAction } from 'react';
 import { SendButton } from '@/components/app/send-button';
 import { StopButton } from './stop-button';
-import type { DocumentAttachment } from '@/lib/types';
+import type { Attachment } from 'ai';
+import { findRelevantContent } from '@/lib/db/queries';
 
 interface PromptInputProps {
 	input: string;
 	textAreaRef: React.RefObject<HTMLTextAreaElement>;
 	setInput: (prevValue: string) => void;
 	isLoading: boolean;
-	submitFormAction: () => void;
+	submitFormAction: (input: string) => void;
 	stopAction: () => void;
 	setMessages: Dispatch<SetStateAction<Message[]>>;
 	attachments: Attachment[];
-	documents: DocumentAttachment[];
 	className?: string;
 }
 
@@ -27,39 +26,62 @@ export const PromptInput = ({
 	stopAction,
 	setMessages,
 	attachments,
-	documents,
 	className,
 	textAreaRef,
 }: PromptInputProps) => {
+	const handleEnhanceInput = async (input: string) => {
+		console.log('Handling enhance input:', input);
+		try {
+			const relevantContent = await findRelevantContent(input);
+			console.log('Relevant content:', relevantContent);
+
+			if (!relevantContent) {
+				submitFormAction(input);
+				return;
+			}
+
+			// Use the most relevant document's content to enhance the input
+			const enhancedInput = relevantContent.title 
+				? `Based on ${relevantContent.title}: ${input}`
+				: input;
+
+			submitFormAction(enhancedInput);
+		} catch (error) {
+			console.error('Error enhancing input:', error);
+			submitFormAction(input); // Fallback to original input if enhancement fails
+		}
+	};
+
+	const handleSubmit = async () => {
+		submitFormAction(input);
+		//await handleEnhanceInput(input);
+	};
+
 	return (
 		<>
 			<Textarea
 				ref={textAreaRef}
 				tabIndex={0}
+				rows={1}
 				value={input}
 				onChange={(e) => setInput(e.target.value)}
-				placeholder="Send a message..."
+				placeholder="Send a message"
 				spellCheck={false}
-				className={cx(
-					'min-h-[88px] w-full resize-none rounded-lg pr-12 text-base py-3 dark:bg-zinc-800/90 dark:hover:bg-zinc-800',
-					className,
-				)}
+				className="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
 				onKeyDown={(e) => {
 					if (e.key === 'Enter' && !e.shiftKey) {
 						e.preventDefault();
-						submitFormAction();
+						handleSubmit();
 					}
 				}}
 			/>
-			<div className="absolute bottom-4 right-4">
+
+			<div className="absolute right-0 top-4 sm:right-4">
 				{isLoading ? (
-					<StopButton 
-						stop={stopAction}
-						setMessages={setMessages}
-					/>
+					<StopButton stop={stopAction} setMessages={setMessages} />
 				) : (
 					<SendButton
-						submitForm={submitFormAction}
+						submitForm={handleSubmit}
 						input={input}
 						uploadQueue={[]}
 					/>

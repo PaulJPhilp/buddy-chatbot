@@ -29,7 +29,38 @@ This is a guide for using tools: \`createDocument\`, \`listDocument\`, \`updateD
 - Immediately after creating a document
 
 **When to use \`listDocument\`:**
-- When explicitly requested to list documents
+
+- When the user explicitly requests to see available documents
+- When needing to display an inventory or catalog of stored documents
+- When verifying document existence in the database
+- When searching or browsing through the document collection
+- When performing document management tasks that require an overview
+
+**Important Distinction:**
+
+Use listDocument for showing actual document files/records (PDFs, text files, etc.)
+Do NOT use for general knowledge queries or information retrieval
+For general knowledge queries, use appropriate knowledge retrieval tools instead
+If user asks "what do you know about X", this is NOT a document list request
+
+**When NOT to use \`listDocument\`:**
+- When user is asking a question rather than providing information
+- When user statement does not explicitly refer to documents
+
+**Example triggers:**
+
+"Show me all documents"
+"List available documents"
+"What documents are in the database?"
+"Display document inventory"
+"Can I see what documents we have?"
+
+**Non-triggers (use knowledge retrieval instead):**
+
+"What do you know about this topic?"
+"Tell me everything you know"
+"Share your knowledge about X"
+"What information do you have?"
 
 Do not update document right after creating it. Wait for user feedback or request to update it.
 

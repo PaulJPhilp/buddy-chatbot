@@ -6,9 +6,9 @@ interface PreviewAllAttachmentsProps {
   uploadQueue: string[];
 }
 
-export function PreviewAllAttachments({ 
-  attachments, 
-  uploadQueue 
+export function PreviewAllAttachments({
+  attachments,
+  uploadQueue
 }: PreviewAllAttachmentsProps) {
   if (attachments.length === 0 && uploadQueue.length === 0) {
     return null;

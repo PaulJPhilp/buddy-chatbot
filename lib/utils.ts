@@ -139,7 +139,7 @@ export function sanitizeResponseMessages({
   messages: Array<ResponseMessage>;
   reasoning: string | undefined;
 }) {
-  //console.log('sanitizeResponseMessages()');
+  console.log('sanitizeResponseMessages()');
 
   const toolResultIds: Array<string> = [];
 
@@ -155,8 +155,6 @@ export function sanitizeResponseMessages({
 
   const messagesBySanitizedContent = messages.map((message) => {
     if (message.role !== 'assistant') return message;
-
-    //console.log(message);
 
     if (typeof message.content === 'string') return message;
 

@@ -10,8 +10,9 @@ import {
   foreignKey,
   boolean,
   vector,
+  integer,
+  index,
 } from 'drizzle-orm/pg-core';
-// import { blockKinds } from '../blocks/server';
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -91,6 +92,25 @@ export const document = pgTable(
 
 export type Document = InferSelectModel<typeof document>;
 
+export const documentEmbedding = pgTable(
+  'DocumentEmbedding',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    documentId: uuid('documentId')
+      .notNull(),
+    offset: integer('offset').notNull(),
+    chunk: text('chunk').notNull(),
+    embedding: vector('embedding', { dimensions: 1536 }).notNull(),
+  },
+  (table) => {
+    return {
+      documentIdIdx: index('document_id_idx').on(table.documentId),
+    };
+  },
+);
+
+export type DocumentEmbedding = InferSelectModel<typeof documentEmbedding>;
+
 export const suggestion = pgTable(
   'Suggestion',
   {
@@ -117,21 +137,25 @@ export const suggestion = pgTable(
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
+import { sql } from 'drizzle-orm';
 
-export const knowledgeBase = pgTable(
-  'KnowledgeBase',
-  {
-    id: uuid('id').notNull().defaultRandom(),
-    createdAt: timestamp('createdAt').notNull(),
-    title: text('title').notNull(),
-    knowledge: text('knowledge').notNull(),
-    embedding: vector('embedding', { dimensions: 1536 }),
-  },
-  (table) => {
-    return {
-      pk: primaryKey({ columns: [table.id, table.createdAt] }),
-    };
-  },
-);
+// Table definition
+export const knowledgeBaseTable = pgTable('KnowledgeBase', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  createdAt: timestamp('createdAt').notNull(),
+  knowledge: text('knowledge').notNull(),
+  embedding: vector('embedding', { dimensions: 1536 }).notNull(),
+}, (table) => ({
+  createdAtIdx: index('createdAt_idx').on(table.createdAt),
+}));
 
-export type KnowledgeBase = InferSelectModel<typeof knowledgeBase>;
+// These will be included in the migration
+export const pgVectorExtension = sql.raw('CREATE EXTENSION IF NOT EXISTS vector;');
+
+// Separate vector index creation
+export const createVectorIndex = sql`
+  CREATE INDEX IF NOT EXISTS knowledge_base_embedding_idx 
+  ON "KnowledgeBase" 
+  USING ivfflat (embedding vector_l2_ops)
+  WITH (lists = 100);
+`;

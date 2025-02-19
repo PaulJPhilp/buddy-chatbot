@@ -85,6 +85,10 @@ function PureMultimodalInput({
     }
   }, [storedHeight])
 
+  const wrappedSubmit = (input: string) => {
+    handleSubmit({ preventDefault: () => {} });
+  };
+
   return (
     <div className="relative w-full flex flex-col gap-4">
       {messages.length === 0 &&
@@ -135,11 +139,10 @@ function PureMultimodalInput({
           input={input}
           setInput={setInput}
           isLoading={isLoading}
-          submitFormAction={handleSubmit}
+          submitFormAction={wrappedSubmit}
           stopAction={stop}
           setMessages={setMessages}
           attachments={attachments}
-          documents={documents}
           className={className}
           textAreaRef={textAreaRef}
         />

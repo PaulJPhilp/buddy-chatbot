@@ -20,12 +20,12 @@ import { cn, fetcher } from '@/lib/utils';
 import { CodeEditor } from '@/components/editors/code-editor';
 import { Editor } from '@/components/editors/editor';
 import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from '@/components/ui/icons';
-import { DocumentToolCall, DocumentToolResult } from '@/components/document/document-tool';
+import { DocumentToolResult } from '@/components/document/document-tool';
 import { InlineDocumentSkeleton } from './document-skeleton';
 
 interface DisplayDocumentProps {
   isReadonly: boolean;
-  result?: { id: string; title: string; kind: BlockKind };
+  result: { id: string; title: string; kind: BlockKind };
   args?: any;
 }
 
@@ -69,11 +69,14 @@ export function DisplayDocument({
   result,
   args,
 }: DisplayDocumentProps) {
+  console.log('DisplayDocument - result:', result.id);
+
   const { block, setBlock } = useBlock();
 
-  const { data: documents, isLoading: isDocumentsFetching } = useSWR<
-    Array<Document>
-  >(result ? `/api/document?id=${result.id}` : null, fetcher);
+  const { data: documents, isLoading: isDocumentsFetching } = useSWR<Array<Document>>(
+    result.id ? `/api/document?id=${result.id}` : null,
+    fetcher
+  );
 
   const previewDocument = useMemo(() => documents?.[0], [documents]);
   const hitboxRef = useRef<HTMLDivElement>(null);
@@ -95,52 +98,28 @@ export function DisplayDocument({
   }, [block.documentId, setBlock]);
 
   if (block.isVisible) {
-    if (result) {
-      return (
-        <DocumentToolResult
-          type="create"
-          result={{ id: result.id, title: result.title, kind: result.kind }}
-          isReadonly={isReadonly}
-        />
-      );
-    }
-
-    if (args) {
-      return (
-        <DocumentToolCall
-          type="create"
-          args={{ title: args.title }}
-          isReadonly={isReadonly}
-        />
-      );
-    }
+    return (
+      <DocumentToolResult
+        type="create"
+        result={result}
+        isReadonly={isReadonly}
+      />
+    );
   }
 
   if (isDocumentsFetching) {
-    return <LoadingSkeleton blockKind={result?.kind ?? args.kind} />;
+    return <LoadingSkeleton blockKind={result.kind} />;
   }
 
-  const document: Document = previewDocument ?? (
-    block.status === 'streaming'
-      ? {
-          title: block.title,
-          kind: block.kind,
-          content: block.content,
-          id: block.documentId,
-          createdAt: new Date(),
-          userId: 'noop',
-          embedding: null,
-        }
-      : documents?.find((doc) => doc.id === block.documentId) ?? {
-          title: '',
-          kind: args.kind,
-          content: null,
-          id: block.documentId || '',
-          createdAt: new Date(),
-          userId: 'noop',
-          embedding: null,
-        }
-  );
+  const document: Document = previewDocument ?? {
+    title: block.title,
+    kind: block.kind,
+    content: block.content,
+    id: block.documentId,
+    createdAt: new Date(),
+    userId: 'noop',
+    embedding: null,
+  };
 
   if (!document) return <LoadingSkeleton blockKind={block.kind} />;
 

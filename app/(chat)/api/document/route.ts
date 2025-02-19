@@ -9,33 +9,44 @@ import {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
+  console.log('GET /api/document - id:', id);
 
   if (!id) {
-    return new Response('Missing id', { status: 400 });
+    console.log('GET /api/document - missing id');
+    return Response.json({ error: 'Missing id' }, { status: 400 });
   }
 
   const session = await auth();
 
   if (!session || !session.user) {
-    return new Response('Unauthorized', { status: 401 });
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const documents = await getDocumentsById({ id });
+  try {
+    const documents = await getDocumentsById({ id });
 
-  const [document] = documents;
+    const [document] = documents;
 
-  if (!document) {
-    return new Response('Not Found', { status: 404 });
+    if (!document) {
+      return Response.json({ error: 'Not Found' }, { status: 404 });
+    }
+
+    if (document.userId !== session.user.id) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    return Response.json(documents, { status: 200 });
+  } catch (error) {
+    console.error('Error fetching document:', error);
+    return Response.json({ 
+      error: 'Internal Server Error',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
-
-  if (document.userId !== session.user.id) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  return Response.json(documents, { status: 200 });
 }
 
 export async function POST(request: Request) {
+  console.log('POST /api/document');
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
 
@@ -57,7 +68,6 @@ export async function POST(request: Request) {
 
   if (session.user?.id) {
     const document = await saveDocument({
-      id,
       content,
       title,
       kind,

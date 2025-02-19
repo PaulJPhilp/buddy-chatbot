@@ -1,5 +1,5 @@
 import type { Vote } from '@/lib/db/schema';
-import type { ChatRequestOptions, Message } from 'ai';
+import type { ChatRequestOptions } from 'ai';
 import equal from 'fast-deep-equal';
 import { memo } from 'react';
 import { Overview } from './overview';
@@ -107,7 +107,6 @@ export const PureMessages = ({
   isReadonly,
   isBlockVisible,
 }: MessagesProps) => {
-  console.log('Messages: ', messages);
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
 
@@ -117,20 +116,6 @@ export const PureMessages = ({
       className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
     >
       {messages.length === 0 && <Overview />}
-
-      {messages?.map((m: Message) => (
-        <div key={m.id}>
-          {m.annotations?.map((a) => {
-            const annotation = a as unknown as MessageAnnotation;
-            if (annotation.chunk) return null
-            return (
-              <div key={annotation.id}>
-                {JSON.stringify(annotation)}
-              </div>
-            );
-          })}
-        </div>
-      ))}
 
       {messages.map((message, index) => (
         <PreviewMessage

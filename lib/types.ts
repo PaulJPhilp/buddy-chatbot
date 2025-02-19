@@ -185,13 +185,13 @@ export type DocumentActionTense = 'present' | 'past';
 export type MessageMode = 'view' | 'edit';
 
 export type EnhancedMessage = Message & {
-  tools?: (Tool & {
-    result: string | null | undefined;
-  })[];
+	tools?: (Tool & {
+		result: string | null | undefined;
+	})[];
 };
 
 export type SetMessagesFunction = (
-  messages: Message[] | ((prevMessages: Message[]) => Message[])
+	messages: Message[] | ((prevMessages: Message[]) => Message[])
 ) => void;
 
 export interface DocumentAttachment {
